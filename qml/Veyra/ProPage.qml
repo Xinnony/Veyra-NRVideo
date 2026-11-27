@@ -694,6 +694,25 @@ VPage {
                 onPressed: mouse => drag(mouse)
                 onPositionChanged: mouse => { if (pressed) drag(mouse) }
             }
+            // Which side is which in 分屏 (same labels as the export preview). Each
+            // label is cut out of the native video (videoCover) so it shows above it.
+            Repeater {
+                model: veyra.compareMode === 2 && veyra.hasSource
+                       ? [{ t: veyra.compareBase ? qsTr("增强前底图") : qsTr("原画"), left: true }, { t: qsTr("增强"), left: false }] : []
+                delegate: Rectangle {
+                    required property var modelData
+                    objectName: "pro-compare-label-" + (modelData.left ? "left" : "right")
+                    readonly property bool videoCover: true
+                    property real coverRadius: 6
+                    x: modelData.left ? 10 : videoArea.width - width - 10
+                    y: 10
+                    width: compareLabel.implicitWidth + 16
+                    height: compareLabel.implicitHeight + 8
+                    radius: 6
+                    color: Qt.rgba(0, 0, 0, 0.6)
+                    Text { id: compareLabel; anchors.centerIn: parent; text: modelData.t; color: "#FFFFFF"; font.family: Theme.fontUi; font.pixelSize: 11 }
+                }
+            }
             Shortcut {
                 sequence: "Escape"
                 enabled: root.visible && !root.onboardingActive && (!root.shell || !root.shell.fullscreen) &&

@@ -6644,6 +6644,19 @@
    "ru": "Без уменьшения"
   },
   {
+   "zh": "不自动",
+   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "zh-TW": "不自動",
+   "en": "None",
+   "ja": "自動適用しない",
+   "ko": "자동 적용 안 함",
+   "es": "Ninguno",
+   "fr": "Aucun",
+   "de": "Keine",
+   "pt-BR": "Nenhuma",
+   "ru": "Нет"
+  },
+  {
    "zh": "不补偿",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "不補償",
@@ -17838,6 +17851,19 @@
    "ru": "Закодировано "
   },
   {
+   "zh": "已自动应用预设“%1”",
+   "src": "src/ui/bridge/Chain.cpp",
+   "zh-TW": "已自動套用預設「%1」",
+   "en": "Preset “%1” applied automatically",
+   "ja": "プリセット「%1」を自動適用しました",
+   "ko": "프리셋 “%1”을(를) 자동 적용했습니다",
+   "es": "Preajuste «%1» aplicado automáticamente",
+   "fr": "Préréglage « %1 » appliqué automatiquement",
+   "de": "Voreinstellung „%1“ automatisch angewendet",
+   "pt-BR": "Predefinição “%1” aplicada automaticamente",
+   "ru": "Пресет «%1» применён автоматически"
+  },
+  {
    "zh": "已解锁全屏",
    "src": "qml/Main.qml",
    "zh-TW": "已解鎖全螢幕",
@@ -20633,6 +20659,19 @@
    "ru": "Открыть настройки записи Windows"
   },
   {
+   "zh": "打开另一类来源时自动套用所选预设；连续打开同类来源不会覆盖你的手动调整。",
+   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "zh-TW": "開啟另一類來源時自動套用所選預設；連續開啟同類來源不會覆蓋你的手動調整。",
+   "en": "Applies the chosen preset when a different kind of source opens; opening another source of the same kind keeps your manual changes.",
+   "ja": "別の種類のソースを開くと選んだプリセットを自動で適用します。同じ種類のソースを続けて開いても手動の調整は上書きされません。",
+   "ko": "다른 종류의 소스를 열면 선택한 프리셋을 자동으로 적용합니다. 같은 종류의 소스를 연속으로 열면 수동 조정은 유지됩니다.",
+   "es": "Aplica el preajuste elegido al abrir otro tipo de fuente; abrir otra fuente del mismo tipo conserva tus ajustes manuales.",
+   "fr": "Applique le préréglage choisi à l'ouverture d'un autre type de source ; rouvrir une source du même type conserve vos réglages manuels.",
+   "de": "Wendet die gewählte Voreinstellung an, wenn eine andere Quellenart geöffnet wird; eine weitere Quelle derselben Art behält Ihre manuellen Änderungen.",
+   "pt-BR": "Aplica a predefinição escolhida ao abrir outro tipo de fonte; abrir outra fonte do mesmo tipo mantém os seus ajustes manuais.",
+   "ru": "Применяет выбранный пресет при открытии источника другого типа; при открытии источника того же типа ручные изменения сохраняются."
+  },
+  {
    "zh": "打开字幕编码器",
    "src": "src/engine/ExportStreams.cpp",
    "zh-TW": "開啟字幕編碼器",
@@ -21346,6 +21385,19 @@
    "de": "Pro Anzeige merken",
    "pt-BR": "Lembrar por tela",
    "ru": "Запоминать для каждого экрана"
+  },
+  {
+   "zh": "按来源自动应用",
+   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "zh-TW": "按來源自動套用",
+   "en": "Apply automatically by source",
+   "ja": "ソース別に自動適用",
+   "ko": "소스별 자동 적용",
+   "es": "Aplicar automáticamente según la fuente",
+   "fr": "Appliquer automatiquement selon la source",
+   "de": "Automatisch je nach Quelle anwenden",
+   "pt-BR": "Aplicar automaticamente por fonte",
+   "ru": "Автоприменение по источнику"
   },
   {
    "zh": "按源帧率和输出上限自动选档；源帧率超过上限时关闭补帧",
@@ -32425,6 +32477,32 @@
    "ru": "Автоскрытие"
   },
   {
+   "zh": "自动预设保存失败",
+   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "zh-TW": "自動預設儲存失敗",
+   "en": "Could not save the automatic preset",
+   "ja": "自動プリセットを保存できませんでした",
+   "ko": "자동 프리셋을 저장하지 못했습니다",
+   "es": "No se pudo guardar el preajuste automático",
+   "fr": "Impossible d'enregistrer le préréglage automatique",
+   "de": "Automatische Voreinstellung konnte nicht gespeichert werden",
+   "pt-BR": "Não foi possível guardar a predefinição automática",
+   "ru": "Не удалось сохранить автопресет"
+  },
+  {
+   "zh": "自动预设已保存",
+   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "zh-TW": "自動預設已儲存",
+   "en": "Automatic preset saved",
+   "ja": "自動プリセットを保存しました",
+   "ko": "자동 프리셋을 저장했습니다",
+   "es": "Preajuste automático guardado",
+   "fr": "Préréglage automatique enregistré",
+   "de": "Automatische Voreinstellung gespeichert",
+   "pt-BR": "Predefinição automática guardada",
+   "ru": "Автопресет сохранён"
+  },
+  {
    "zh": "自动（优先 PCM，必要时位流解码）",
    "src": "include/veyra/engine/EnhancementSettings.h",
    "zh-TW": "自動（優先 PCM，必要時位流解碼）",
@@ -40990,6 +41068,19 @@
    "de": "Presets",
    "pt-BR": "Predefinições",
    "ru": "Пресеты"
+  },
+  {
+   "zh": "预设“%1”属于另一种编辑模式，未自动应用",
+   "src": "src/ui/bridge/Chain.cpp",
+   "zh-TW": "預設「%1」屬於另一種編輯模式，未自動套用",
+   "en": "Preset “%1” belongs to the other editing mode and was not applied automatically",
+   "ja": "プリセット「%1」は別の編集モード用のため、自動適用しませんでした",
+   "ko": "프리셋 “%1”은(는) 다른 편집 모드용이라 자동 적용하지 않았습니다",
+   "es": "El preajuste «%1» pertenece al otro modo de edición y no se aplicó automáticamente",
+   "fr": "Le préréglage « %1 » appartient à l'autre mode d'édition et n'a pas été appliqué automatiquement",
+   "de": "Die Voreinstellung „%1“ gehört zum anderen Bearbeitungsmodus und wurde nicht automatisch angewendet",
+   "pt-BR": "A predefinição “%1” pertence ao outro modo de edição e não foi aplicada automaticamente",
+   "ru": "Пресет «%1» относится к другому режиму редактирования и не был применён автоматически"
   },
   {
    "zh": "预设「%1」",

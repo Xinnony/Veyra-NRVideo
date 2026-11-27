@@ -1006,6 +1006,10 @@ struct QmlPlayerBridge::Impl {
 
     // The chain the UI edits, kept in step with the facade's pending settings.
     uint64_t fgAutoSession = 0;       // 已为哪个会话决定过档位
+    // Automatic per-source presets: the session already considered, and the source
+    // kind last seen. Opening another source of the same kind keeps manual tweaks.
+    uint64_t sourcePresetSession = 0;
+    QString sourcePresetKind;
 };
 
 

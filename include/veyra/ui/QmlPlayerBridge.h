@@ -646,6 +646,10 @@ class QmlPlayerBridge : public QObject {
     Q_PROPERTY(QVariantList presetSaveParts READ presetSaveParts NOTIFY chainChanged)
     // Which preset the app opens with, as the manage page's "set default" uses.
     Q_PROPERTY(int defaultPresetIndex READ defaultPresetIndex NOTIFY presetsChanged)
+    // Per-source automatic presets: source kind (file | capture | ps5 | moonlight |
+    // xbox | screen) -> preset index, -1 when that kind has none. Stored by name in
+    // the preferences; empty by default, so nothing changes until the user picks one.
+    Q_PROPERTY(QVariantMap sourcePresets READ sourcePresets NOTIFY presetsChanged)
 
     // --- colour page -------------------------------------------------------
     // The engine's ColorSettings carries a large parameter set. Rather than one
@@ -1345,6 +1349,7 @@ public:
     QVariantList presetChoices() const;
     QVariantList presetSaveParts() const;
     int defaultPresetIndex() const;
+    QVariantMap sourcePresets() const;
     QVariantList colourParameters() const;
     QVariantList colourGroups() const;
     int selectedColourLayer() const;
@@ -1495,6 +1500,8 @@ public:
     Q_INVOKABLE bool renamePreset(int index, const QString& name);
     Q_INVOKABLE bool duplicatePreset(int index);
     Q_INVOKABLE bool setDefaultPreset(int index);
+    // index -1 clears the kind's automatic preset.
+    Q_INVOKABLE bool setSourcePreset(const QString& kind, int index);
 
     Q_INVOKABLE void refreshRecentFiles();
     Q_INVOKABLE void clearRecentFiles();
@@ -1511,6 +1518,8 @@ public:
     void showFormatBadge(const engine::PlayerSnapshot& snapshot);
 
     void maybeApplyFgAutoMultiplier();
+    // Applies the user's automatic preset when a new kind of source starts.
+    void maybeApplySourcePreset();
 
     void setFgAutoMultiplier(bool value);
     bool fgAutoMultiplierAvailable() const;
