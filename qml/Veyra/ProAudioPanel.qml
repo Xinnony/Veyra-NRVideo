@@ -9,6 +9,7 @@ ColumnLayout {
     id: audioCol
     Layout.fillWidth: true
     spacing: 6
+    signal requestDialog(string key)
     VGroup {
         VRow {
             label: qsTr("音量")
@@ -56,6 +57,15 @@ ColumnLayout {
                 center: true
                 from: -250; to: 250; value: veyra.audioOffsetMs; enabledControl: veyra.audioSyncMode === 1
                 onMoved: value => veyra.audioOffsetMs = Math.round(value)
+            }
+        }
+        VRow {
+            visible: (veyra.liveTranslation || null) !== null
+            label: qsTr("实时翻译")
+            VButton {
+                objectName: "pro-live-translation"
+                text: qsTr("实时翻译设置…")
+                onClicked: audioCol.requestDialog("translation")
             }
         }
     }

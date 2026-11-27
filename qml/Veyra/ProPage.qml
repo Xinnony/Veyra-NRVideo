@@ -2123,6 +2123,7 @@ VPage {
                         id: audioCol
                         Layout.fillWidth: true
                         visible: root.tab === "audio"
+                        onRequestDialog: key => root.requestDialog(key)
                     }
 
                     // --- 显示 -------------------------------------------------
