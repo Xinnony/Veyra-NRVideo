@@ -2211,6 +2211,19 @@
    "ru": "CQ сохраняет неизменное качество; размер файла следует за сложностью изображения."
   },
   {
+   "zh": "ChatGPT 订阅不包含 API 额度：请在 platform.openai.com 创建密钥，按用量计费。仅本次运行有效。",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "ChatGPT 訂閱不包含 API 額度：請在 platform.openai.com 建立密鑰，按用量計費。僅本次執行有效。",
+   "en": "A ChatGPT subscription does not include API credit: create a key at platform.openai.com (billed by usage). Kept for this session only.",
+   "ja": "ChatGPT のサブスクリプションには API 利用枠が含まれません。platform.openai.com でキーを作成してください（従量課金）。今回の実行中のみ有効です。",
+   "ko": "ChatGPT 구독에는 API 사용량이 포함되지 않습니다. platform.openai.com에서 키를 만드세요(사용량 과금). 이번 실행 동안만 유지됩니다.",
+   "es": "Una suscripción a ChatGPT no incluye crédito de API: crea una clave en platform.openai.com (se cobra por uso). Solo para esta sesión.",
+   "fr": "Un abonnement ChatGPT n'inclut pas de crédit API : créez une clé sur platform.openai.com (facturée à l'usage). Valable pour cette session uniquement.",
+   "de": "Ein ChatGPT-Abo enthält kein API-Guthaben: Erstelle einen Schlüssel auf platform.openai.com (nutzungsabhängig abgerechnet). Gilt nur für diese Sitzung.",
+   "pt-BR": "Uma assinatura do ChatGPT não inclui crédito de API: crie uma chave em platform.openai.com (cobrada pelo uso). Válida só nesta sessão.",
+   "ru": "Подписка ChatGPT не включает кредиты API: создайте ключ на platform.openai.com (оплата по использованию). Действует только в этом сеансе."
+  },
+  {
    "zh": "Ctrl+Alt+Shift+S 隐藏",
    "src": "qml/StreamHud.qml",
    "zh-TW": "Ctrl+Alt+Shift+S 隱藏",
@@ -3823,6 +3836,32 @@
    "ru": "OpenAI Whisper · MIT · Рекомендуется быстрый процессор"
   },
   {
+   "zh": "OpenAI 语音请求失败：%1",
+   "src": "src/ui/DubVoice.cpp",
+   "zh-TW": "OpenAI 語音請求失敗：%1",
+   "en": "OpenAI speech request failed: %1",
+   "ja": "OpenAI 音声リクエストに失敗しました：%1",
+   "ko": "OpenAI 음성 요청 실패: %1",
+   "es": "Falló la solicitud de voz de OpenAI: %1",
+   "fr": "Échec de la requête vocale OpenAI : %1",
+   "de": "OpenAI-Sprachanfrage fehlgeschlagen: %1",
+   "pt-BR": "Falha na solicitação de voz da OpenAI: %1",
+   "ru": "Ошибка запроса речи OpenAI: %1"
+  },
+  {
+   "zh": "OpenAI 语音（需要 API 密钥）",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "OpenAI 語音（需要 API 密鑰）",
+   "en": "OpenAI voice (API key required)",
+   "ja": "OpenAI 音声（API キーが必要）",
+   "ko": "OpenAI 음성(API 키 필요)",
+   "es": "Voz de OpenAI (requiere clave API)",
+   "fr": "Voix OpenAI (clé API requise)",
+   "de": "OpenAI-Stimme (API-Schlüssel nötig)",
+   "pt-BR": "Voz da OpenAI (requer chave de API)",
+   "ru": "Голос OpenAI (нужен ключ API)"
+  },
+  {
    "zh": "PC 串流",
    "src": "qml/CineBar.qml",
    "zh-TW": "PC 串流",
@@ -5422,6 +5461,32 @@
    "ru": "Windows не удалось дождаться завершения программы."
   },
   {
+   "zh": "Windows 语音",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "Windows 語音",
+   "en": "Windows voice",
+   "ja": "Windows の音声",
+   "ko": "Windows 음성",
+   "es": "Voz de Windows",
+   "fr": "Voix Windows",
+   "de": "Windows-Stimme",
+   "pt-BR": "Voz do Windows",
+   "ru": "Голос Windows"
+  },
+  {
+   "zh": "Windows 语音（本机，免费）",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "Windows 語音（本機，免費）",
+   "en": "Windows voice (local, free)",
+   "ja": "Windows の音声（ローカル・無料）",
+   "ko": "Windows 음성(로컬, 무료)",
+   "es": "Voz de Windows (local, gratis)",
+   "fr": "Voix Windows (locale, gratuite)",
+   "de": "Windows-Stimme (lokal, kostenlos)",
+   "pt-BR": "Voz do Windows (local, grátis)",
+   "ru": "Голос Windows (локально, бесплатно)"
+  },
+  {
    "zh": "Windows 错误 {}",
    "src": "include/veyra/base/LauncherDiagnostics.h",
    "zh-TW": "Windows 錯誤 {}",
@@ -6645,7 +6710,7 @@
   },
   {
    "zh": "不自动",
-   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "src": "qml/ManagePresetsDialog.qml",
    "zh-TW": "不自動",
    "en": "None",
    "ja": "自動適用しない",
@@ -11429,6 +11494,19 @@
    "ru": "Сохранение цвета источника"
   },
   {
+   "zh": "原声 ↔ 配音",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "原聲 ↔ 配音",
+   "en": "Original ↔ dub",
+   "ja": "原音声 ↔ 吹き替え",
+   "ko": "원음 ↔ 더빙",
+   "es": "Original ↔ doblaje",
+   "fr": "Voix originale ↔ doublage",
+   "de": "Original ↔ Synchron",
+   "pt-BR": "Original ↔ dublagem",
+   "ru": "Оригинал ↔ озвучка"
+  },
+  {
    "zh": "原始 = 一个输出像素对一个屏幕像素",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "原始 = 一個輸出像素對一個螢幕像素",
@@ -12508,6 +12586,19 @@
    "ru": "Переменное обновление: только 1 кадр в очереди выше максимума дисплея"
   },
   {
+   "zh": "可在 Windows 设置 › 时间和语言 › 语音 中添加其他语言的语音。",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "可在 Windows 設定 › 時間和語言 › 語音 中添加其他語言的語音。",
+   "en": "Add voices for other languages in Windows Settings › Time & language › Speech.",
+   "ja": "他の言語の音声は Windows の設定 › 時刻と言語 › 音声認識 で追加できます。",
+   "ko": "다른 언어 음성은 Windows 설정 › 시간 및 언어 › 음성에서 추가할 수 있습니다.",
+   "es": "Añade voces de otros idiomas en Configuración de Windows › Hora e idioma › Voz.",
+   "fr": "Ajoutez des voix d'autres langues dans Paramètres Windows › Heure et langue › Voix.",
+   "de": "Stimmen für weitere Sprachen unter Windows-Einstellungen › Zeit und Sprache › Spracherkennung hinzufügen.",
+   "pt-BR": "Adicione vozes de outros idiomas em Configurações do Windows › Hora e idioma › Fala.",
+   "ru": "Голоса других языков можно добавить в Параметры Windows › Время и язык › Речь."
+  },
+  {
    "zh": "可用",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "可用",
@@ -12805,6 +12896,19 @@
    "de": "5 Sekunden zurück / vor",
    "pt-BR": "Voltar / avançar 5 segundos",
    "ru": "Назад / вперёд на 5 секунд"
+  },
+  {
+   "zh": "向左只保留原声人声，居中两者都保留，向右只保留配音。车辆、枪声、动物、警笛等音效不受这个滑块影响。",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "向左只保留原聲人聲，居中兩者都保留，向右只保留配音。車輛、槍聲、動物、警笛等音效不受這個滑塊影響。",
+   "en": "Left keeps only the original voices, the middle keeps both, right keeps only the dub. Effects such as vehicles, gunshots, animals and sirens are not targeted by this slider.",
+   "ja": "左は原音声のみ、中央は両方、右は吹き替えのみ。車・銃声・動物・サイレンなどの効果音はこのスライダーの対象外です。",
+   "ko": "왼쪽은 원래 목소리만, 가운데는 둘 다, 오른쪽은 더빙만 남깁니다. 차량, 총성, 동물, 사이렌 같은 효과음은 이 슬라이더의 대상이 아닙니다.",
+   "es": "A la izquierda solo las voces originales, en el centro ambas, a la derecha solo el doblaje. Efectos como vehículos, disparos, animales y sirenas no son el objetivo de este control.",
+   "fr": "À gauche, seules les voix originales ; au centre, les deux ; à droite, seulement le doublage. Les effets (véhicules, tirs, animaux, sirènes…) ne sont pas visés par ce curseur.",
+   "de": "Links nur Originalstimmen, Mitte beide, rechts nur die Synchronstimme. Effekte wie Fahrzeuge, Schüsse, Tiere und Sirenen zielt dieser Regler nicht an.",
+   "pt-BR": "À esquerda só as vozes originais, no meio ambas, à direita só a dublagem. Efeitos como veículos, tiros, animais e sirenes não são o alvo deste controle.",
+   "ru": "Слева только оригинальные голоса, в центре оба, справа только озвучка. Эффекты (машины, выстрелы, животные, сирены) этим ползунком не затрагиваются."
   },
   {
    "zh": "否",
@@ -14134,7 +14238,7 @@
   },
   {
    "zh": "声音",
-   "src": "qml/PlayerAudioMenu.qml",
+   "src": "qml/AudioFiltersDialog.qml",
    "zh-TW": "聲音",
    "en": "Audio",
    "ja": "音声",
@@ -14534,6 +14638,19 @@
    "de": "Mischen Sie Mehrkanalquellen bis zu Stereo (Kopfhörer); Wenn Sie ausgeschaltet sind, folgen die Kanäle dem Gerätelayout",
    "pt-BR": "Misture fontes multicanais até estéreo (headphones); quando desligados, os canais seguem a disposição do dispositivo",
    "ru": "Смешайте многоканальные источники вплоть до стерео (наушники); при выключении каналы следуют за компоновкой устройства."
+  },
+  {
+   "zh": "多声道音频：只压低中置声道，那里通常是对白；不增加延迟。",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "多聲道音訊：只壓低中置聲道，那裡通常是對白；不增加延遲。",
+   "en": "Multichannel audio: only the centre channel, which normally carries dialogue, is lowered; no added delay.",
+   "ja": "マルチチャンネル音声：通常セリフが入るセンターチャンネルだけを下げます。遅延は増えません。",
+   "ko": "멀티채널 오디오: 보통 대사가 담긴 센터 채널만 낮춥니다. 지연이 늘지 않습니다.",
+   "es": "Audio multicanal: solo se baja el canal central, que suele llevar los diálogos; sin retardo añadido.",
+   "fr": "Audio multicanal : seul le canal central, qui porte normalement les dialogues, est baissé ; aucun retard ajouté.",
+   "de": "Mehrkanalton: Nur der Center-Kanal, der normalerweise die Dialoge trägt, wird abgesenkt; keine zusätzliche Verzögerung.",
+   "pt-BR": "Áudio multicanal: só o canal central, que normalmente leva os diálogos, é reduzido; sem atraso extra.",
+   "ru": "Многоканальный звук: приглушается только центральный канал, где обычно диалоги; без дополнительной задержки."
   },
   {
    "zh": "多层 NR 可尝试前层 720p、末层 1080p；三层可尝试 480p / 720p / 1080p。降低前层分辨率会改变画面，视频导出同样按各层所选分辨率处理。",
@@ -15239,7 +15356,7 @@
   },
   {
    "zh": "完成",
-   "src": "qml/AudioSettingsDialog.qml",
+   "src": "qml/AudioFiltersDialog.qml",
    "zh-TW": "完成",
    "en": "Done",
    "ja": "完了",
@@ -15369,7 +15486,7 @@
   },
   {
    "zh": "实时翻译设置…",
-   "src": "qml/ProPage.qml",
+   "src": "qml/AudioFiltersDialog.qml",
    "zh-TW": "即時翻譯設定…",
    "en": "Live translation settings…",
    "ja": "リアルタイム翻訳の設定…",
@@ -15405,6 +15522,32 @@
    "de": "Windows 11 22H2 oder neuer erforderlich",
    "pt-BR": "Requer Windows 11 22H2 ou posterior",
    "ru": "Требуется Windows 11 22H2 или новее"
+  },
+  {
+   "zh": "实时配音",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "即時配音",
+   "en": "Live dubbing",
+   "ja": "リアルタイム吹き替え",
+   "ko": "실시간 더빙",
+   "es": "Doblaje en directo",
+   "fr": "Doublage en direct",
+   "de": "Live-Synchronisation",
+   "pt-BR": "Dublagem ao vivo",
+   "ru": "Живая озвучка"
+  },
+  {
+   "zh": "实时配音、压低原声人声",
+   "src": "qml/PlayerAudioMenu.qml",
+   "zh-TW": "即時配音、壓低原聲人聲",
+   "en": "Live dubbing, lower original voices",
+   "ja": "リアルタイム吹き替え・原音声を下げる",
+   "ko": "실시간 더빙, 원래 목소리 낮추기",
+   "es": "Doblaje en directo, bajar voces originales",
+   "fr": "Doublage en direct, baisse des voix originales",
+   "de": "Live-Synchronisation, Originalstimmen absenken",
+   "pt-BR": "Dublagem ao vivo, reduzir vozes originais",
+   "ru": "Живая озвучка, приглушение оригинальных голосов"
   },
   {
    "zh": "实时采集",
@@ -18085,6 +18228,19 @@
    "ru": "Сопряжено"
   },
   {
+   "zh": "已配音 %1 句 · 跳过 %2 句 · 平均晚于原声 %3 ms",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "已配音 %1 句 · 跳過 %2 句 · 平均晚於原聲 %3 ms",
+   "en": "Dubbed %1 lines · skipped %2 · on average %3 ms behind the original",
+   "ja": "吹き替え %1 文 · スキップ %2 文 · 原音声より平均 %3 ms 遅れ",
+   "ko": "더빙 %1문장 · 건너뜀 %2문장 · 원음보다 평균 %3 ms 늦음",
+   "es": "%1 frases dobladas · %2 omitidas · de media %3 ms tras el original",
+   "fr": "%1 phrases doublées · %2 ignorées · en moyenne %3 ms après l'original",
+   "de": "%1 Sätze synchronisiert · %2 übersprungen · im Schnitt %3 ms hinter dem Original",
+   "pt-BR": "%1 frases dubladas · %2 puladas · em média %3 ms após o original",
+   "ru": "Озвучено фраз: %1 · пропущено: %2 · в среднем на %3 мс позже оригинала"
+  },
+  {
    "zh": "已释放键盘和鼠标（点击画面重新捕获）",
    "src": "src/ui/bridge/RemotePlay.cpp",
    "zh-TW": "已釋放鍵盤和滑鼠（點擊畫面重新擷取）",
@@ -20660,7 +20816,7 @@
   },
   {
    "zh": "打开另一类来源时自动套用所选预设；连续打开同类来源不会覆盖你的手动调整。",
-   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "src": "qml/ManagePresetsDialog.qml",
    "zh-TW": "開啟另一類來源時自動套用所選預設；連續開啟同類來源不會覆蓋你的手動調整。",
    "en": "Applies the chosen preset when a different kind of source opens; opening another source of the same kind keeps your manual changes.",
    "ja": "別の種類のソースを開くと選んだプリセットを自動で適用します。同じ種類のソースを続けて開いても手動の調整は上書きされません。",
@@ -21062,6 +21218,19 @@
    "ru": "Возвращает часть текстуры кожи, чтобы избежать пластикового вида"
   },
   {
+   "zh": "把实时翻译的每句话用语音读出来。配音会比原声晚 1–3 秒；游戏画面不会被延迟。需要开启实时翻译，识别来源为 Veyra 音频。",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "把即時翻譯的每句話用語音讀出來。配音會比原聲晚 1–3 秒；遊戲畫面不會被延遲。需要開啟即時翻譯，識別來源為 Veyra 音訊。",
+   "en": "Reads each live-translated line aloud. The dub follows the original by 1–3 s; the game picture is not delayed. Requires live translation with Veyra audio as the recognition source.",
+   "ja": "リアルタイム翻訳の各文を音声で読み上げます。吹き替えは原音声より 1〜3 秒遅れます。ゲーム映像は遅延させません。認識ソースを Veyra 音声にしてリアルタイム翻訳をオンにする必要があります。",
+   "ko": "실시간 번역된 각 문장을 음성으로 읽습니다. 더빙은 원음보다 1–3초 늦으며 게임 화면은 지연되지 않습니다. 인식 소스를 Veyra 오디오로 하여 실시간 번역을 켜야 합니다.",
+   "es": "Lee en voz alta cada frase traducida en directo. El doblaje va 1–3 s por detrás del original; la imagen del juego no se retrasa. Requiere la traducción en directo con el audio de Veyra como fuente.",
+   "fr": "Lit à voix haute chaque phrase traduite en direct. Le doublage arrive 1 à 3 s après l'original ; l'image du jeu n'est pas retardée. Nécessite la traduction en direct avec l'audio Veyra comme source de reconnaissance.",
+   "de": "Liest jeden live übersetzten Satz vor. Die Synchronstimme folgt dem Original mit 1–3 s; das Spielbild wird nicht verzögert. Erfordert die Live-Übersetzung mit Veyra-Audio als Erkennungsquelle.",
+   "pt-BR": "Lê em voz alta cada frase traduzida ao vivo. A dublagem chega 1–3 s após o original; a imagem do jogo não é atrasada. Requer a tradução ao vivo com o áudio do Veyra como fonte.",
+   "ru": "Читает вслух каждую фразу живого перевода. Озвучка отстаёт от оригинала на 1–3 с; изображение игры не задерживается. Нужен живой перевод с источником распознавания «Аудио Veyra»."
+  },
+  {
    "zh": "把当前设置另存为预设…",
    "src": "qml/NodePage.qml",
    "zh-TW": "把當前設定另存為預設…",
@@ -21388,7 +21557,7 @@
   },
   {
    "zh": "按来源自动应用",
-   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "src": "qml/ManagePresetsDialog.qml",
    "zh-TW": "按來源自動套用",
    "en": "Apply automatically by source",
    "ja": "ソース別に自動適用",
@@ -21518,7 +21687,7 @@
   },
   {
    "zh": "接口模型名",
-   "src": "qml/LiveTranslationDialog.qml",
+   "src": "qml/AudioFiltersDialog.qml",
    "zh-TW": "介面模型名稱",
    "en": "API model name",
    "ja": "API のモデル名",
@@ -22049,6 +22218,19 @@
    "de": "Wiedergabeleiste ausgeblendet · Zeiger nach oben bewegen und auf das Auge im Dock klicken, um sie zurückzuholen",
    "pt-BR": "Barra de reprodução oculta · leve o ponteiro ao topo e clique no olho do dock para trazê-la de volta",
    "ru": "Панель воспроизведения скрыта · наведите указатель наверх и нажмите на глаз в доке, чтобы вернуть её"
+  },
+  {
+   "zh": "播放示例",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "播放示例",
+   "en": "Play sample",
+   "ja": "サンプルを再生",
+   "ko": "샘플 재생",
+   "es": "Reproducir muestra",
+   "fr": "Écouter un exemple",
+   "de": "Beispiel abspielen",
+   "pt-BR": "Tocar exemplo",
+   "ru": "Прослушать пример"
   },
   {
    "zh": "播放速度",
@@ -25106,6 +25288,19 @@
    "ru": "Скорость сервера {:.1f} MB /s ниже битрейта видео {:.1f} MB /s; поднять буфер или загрузить его перед игрой"
   },
   {
+   "zh": "朗读翻译并压低原声人声",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "朗讀翻譯並壓低原聲人聲",
+   "en": "Read translation aloud and lower original voices",
+   "ja": "翻訳を読み上げて原音声を下げる",
+   "ko": "번역을 읽고 원래 목소리 낮추기",
+   "es": "Leer la traducción y bajar las voces originales",
+   "fr": "Lire la traduction et baisser les voix originales",
+   "de": "Übersetzung vorlesen und Originalstimmen absenken",
+   "pt-BR": "Ler a tradução e reduzir as vozes originais",
+   "ru": "Озвучивать перевод и приглушать оригинальные голоса"
+  },
+  {
    "zh": "未使用",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "未使用",
@@ -27316,6 +27511,19 @@
    "ru": "Ожидание субтитров на экране…"
   },
   {
+   "zh": "正在等待翻译…",
+   "src": "src/ui/DubVoice.cpp",
+   "zh-TW": "正在等待翻譯…",
+   "en": "Waiting for translation…",
+   "ja": "翻訳を待っています…",
+   "ko": "번역을 기다리는 중…",
+   "es": "Esperando la traducción…",
+   "fr": "En attente de traduction…",
+   "de": "Warte auf Übersetzung…",
+   "pt-BR": "Aguardando a tradução…",
+   "ru": "Ожидание перевода…"
+  },
+  {
    "zh": "正在等待语音…",
    "src": "src/ui/LiveTranslation.cpp",
    "zh-TW": "正在等待語音…",
@@ -27951,6 +28159,19 @@
    "de": "Kein H.264 Decoder verfügbar.",
    "pt-BR": "Nenhum decodificador H.264 disponível.",
    "ru": "Нет H.264 декодера."
+  },
+  {
+   "zh": "没有可用的 Windows 语音",
+   "src": "src/ui/DubVoice.cpp",
+   "zh-TW": "沒有可用的 Windows 語音",
+   "en": "No Windows voice is available",
+   "ja": "利用できる Windows の音声がありません",
+   "ko": "사용할 수 있는 Windows 음성이 없습니다",
+   "es": "No hay ninguna voz de Windows disponible",
+   "fr": "Aucune voix Windows disponible",
+   "de": "Keine Windows-Stimme verfügbar",
+   "pt-BR": "Nenhuma voz do Windows disponível",
+   "ru": "Нет доступного голоса Windows"
   },
   {
    "zh": "没有可用的主字幕，无法自动对齐",
@@ -30475,6 +30696,19 @@
    "ru": "Сведение в стерео"
   },
   {
+   "zh": "立体声音频：压低居中的人声频段（不是 AI 分离，居中的音效也会略微变小），声音延迟约 21 ms。",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "立體聲音訊：壓低居中的人聲頻段（不是 AI 分離，居中的音效也會略微變小），聲音延遲約 21 ms。",
+   "en": "Stereo audio: the centred voice band is lowered (not AI separation, so centred effects get slightly quieter too); audio is delayed by about 21 ms.",
+   "ja": "ステレオ音声：中央に定位した声の帯域を下げます（AI 分離ではないため、中央の効果音も少し小さくなります）。音声は約 21 ms 遅れます。",
+   "ko": "스테레오 오디오: 가운데에 있는 음성 대역을 낮춥니다(AI 분리가 아니어서 가운데 효과음도 조금 작아집니다). 소리가 약 21 ms 지연됩니다.",
+   "es": "Audio estéreo: se baja la banda de voz centrada (no es separación por IA, los efectos centrados también bajan un poco); el audio se retrasa unos 21 ms.",
+   "fr": "Audio stéréo : la bande vocale centrée est baissée (ce n'est pas une séparation par IA : les effets centrés baissent un peu aussi) ; le son est retardé d'environ 21 ms.",
+   "de": "Stereoton: Das mittige Stimmband wird abgesenkt (keine KI-Trennung, mittige Effekte werden auch etwas leiser); der Ton wird um etwa 21 ms verzögert.",
+   "pt-BR": "Áudio estéreo: a faixa de voz centralizada é reduzida (não é separação por IA, efeitos centrais também ficam um pouco mais baixos); o áudio atrasa cerca de 21 ms.",
+   "ru": "Стерео: приглушается центральная речевая полоса (это не ИИ-разделение, центральные эффекты тоже немного тише); звук задерживается примерно на 21 мс."
+  },
+  {
    "zh": "立即生效；日志保持中文，方便反馈问题",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "立即生效；日誌保持中文，方便反饋問題",
@@ -32478,7 +32712,7 @@
   },
   {
    "zh": "自动预设保存失败",
-   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "src": "qml/ManagePresetsDialog.qml",
    "zh-TW": "自動預設儲存失敗",
    "en": "Could not save the automatic preset",
    "ja": "自動プリセットを保存できませんでした",
@@ -32491,7 +32725,7 @@
   },
   {
    "zh": "自动预设已保存",
-   "src": "qml/Veyra/ManagePresetsDialog.qml",
+   "src": "qml/ManagePresetsDialog.qml",
    "zh-TW": "自動預設已儲存",
    "en": "Automatic preset saved",
    "ja": "自動プリセットを保存しました",
@@ -32527,6 +32761,19 @@
    "de": "Auto (durch Auflösung)",
    "pt-BR": "Auto (por resolução)",
    "ru": "Авто (по разрешению)"
+  },
+  {
+   "zh": "自动（按译文语言）",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "自動（按譯文語言）",
+   "en": "Automatic (translation language)",
+   "ja": "自動（翻訳先の言語）",
+   "ko": "자동(번역 언어)",
+   "es": "Automático (idioma de la traducción)",
+   "fr": "Automatique (langue de la traduction)",
+   "de": "Automatisch (Übersetzungssprache)",
+   "pt-BR": "Automático (idioma da tradução)",
+   "ru": "Автоматически (язык перевода)"
   },
   {
    "zh": "自动（按负载）",
@@ -35142,6 +35389,19 @@
    "ru": "Максимум строк перевода"
   },
   {
+   "zh": "试听",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "試聽",
+   "en": "Preview",
+   "ja": "試聴",
+   "ko": "미리 듣기",
+   "es": "Probar",
+   "fr": "Essai",
+   "de": "Probehören",
+   "pt-BR": "Ouvir",
+   "ru": "Прослушать"
+  },
+  {
    "zh": "该地址没有视频流",
    "src": "src/media/DemuxSession.cpp",
    "zh-TW": "該位址沒有影片串流",
@@ -35231,6 +35491,32 @@
    "de": "Dieser Knotentyp hat sein Limit erreicht (einschließlich deaktivierter und nicht verbundener Knoten)",
    "pt-BR": "Este tipo de nó atingiu o seu limite (incluindo nós desactivados e não ligados)",
    "ru": "Этот тип узла достиг своего предела (включая отключенные и неподключенные узлы)."
+  },
+  {
+   "zh": "语音合成失败：%1",
+   "src": "src/ui/DubVoice.cpp",
+   "zh-TW": "語音合成失敗：%1",
+   "en": "Speech synthesis failed: %1",
+   "ja": "音声合成に失敗しました：%1",
+   "ko": "음성 합성 실패: %1",
+   "es": "Falló la síntesis de voz: %1",
+   "fr": "Échec de la synthèse vocale : %1",
+   "de": "Sprachsynthese fehlgeschlagen: %1",
+   "pt-BR": "Falha na síntese de voz: %1",
+   "ru": "Ошибка синтеза речи: %1"
+  },
+  {
+   "zh": "语音引擎",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "語音引擎",
+   "en": "Speech engine",
+   "ja": "音声エンジン",
+   "ko": "음성 엔진",
+   "es": "Motor de voz",
+   "fr": "Moteur vocal",
+   "de": "Sprach-Engine",
+   "pt-BR": "Motor de voz",
+   "ru": "Речевой движок"
   },
   {
    "zh": "语音识别",
@@ -35387,6 +35673,19 @@
    "de": "Beenden Sie die Paarung und geben Sie zuerst eine gültige Hostadresse ein.",
    "pt-BR": "Termina o emparelhamento e introduza primeiro um endereço de máquina válido.",
    "ru": "Закончите спаривание и сначала введите действительный адрес хоста."
+  },
+  {
+   "zh": "请先开启实时翻译（识别来源：Veyra 音频）",
+   "src": "src/ui/DubVoice.cpp",
+   "zh-TW": "請先開啟即時翻譯（識別來源：Veyra 音訊）",
+   "en": "Turn on live translation first (recognition source: Veyra audio)",
+   "ja": "先にリアルタイム翻訳をオンにしてください（認識ソース：Veyra 音声）",
+   "ko": "먼저 실시간 번역을 켜세요(인식 소스: Veyra 오디오)",
+   "es": "Activa primero la traducción en directo (fuente: audio de Veyra)",
+   "fr": "Activez d'abord la traduction en direct (source de reconnaissance : audio Veyra)",
+   "de": "Zuerst die Live-Übersetzung einschalten (Erkennungsquelle: Veyra-Audio)",
+   "pt-BR": "Ative primeiro a tradução ao vivo (fonte: áudio do Veyra)",
+   "ru": "Сначала включите живой перевод (источник: аудио Veyra)"
   },
   {
    "zh": "请先打开视频，再在画面上绘制保护区域",
@@ -35608,6 +35907,19 @@
    "de": "HTTPS-Adresse und Modellname eingeben. Lokale Dienste können HTTP verwenden.",
    "pt-BR": "Informe um endereço HTTPS e o modelo. Serviços locais podem usar HTTP.",
    "ru": "Укажите HTTPS-адрес и имя модели. Для локальных служб допустим HTTP."
+  },
+  {
+   "zh": "请填写 OpenAI API 密钥",
+   "src": "src/ui/DubVoice.cpp",
+   "zh-TW": "請填寫 OpenAI API 密鑰",
+   "en": "Enter an OpenAI API key",
+   "ja": "OpenAI の API キーを入力してください",
+   "ko": "OpenAI API 키를 입력하세요",
+   "es": "Introduce una clave API de OpenAI",
+   "fr": "Saisissez une clé API OpenAI",
+   "de": "OpenAI-API-Schlüssel eingeben",
+   "pt-BR": "Informe uma chave de API da OpenAI",
+   "ru": "Введите ключ API OpenAI"
   },
   {
    "zh": "请填写主机的 IP 地址或名称，例如 192.168.1.20。",
@@ -37937,6 +38249,19 @@
    "ru": "Истории захвата пока нет"
   },
   {
+   "zh": "这个声音无法分离人声（单声道），只叠加配音。",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "這個聲音無法分離人聲（單聲道），只疊加配音。",
+   "en": "Voices cannot be separated in this audio (mono); the dub is only mixed in.",
+   "ja": "この音声（モノラル）では声を分離できないため、吹き替えを重ねるだけです。",
+   "ko": "이 오디오(모노)에서는 목소리를 분리할 수 없어 더빙만 더합니다.",
+   "es": "En este audio (mono) no se pueden separar las voces; solo se añade el doblaje.",
+   "fr": "Impossible de séparer les voix dans ce son (mono) : le doublage est seulement ajouté.",
+   "de": "In diesem Ton (Mono) lassen sich Stimmen nicht trennen; die Synchronstimme wird nur dazugemischt.",
+   "pt-BR": "Não é possível separar as vozes neste áudio (mono); a dublagem só é sobreposta.",
+   "ru": "В этом звуке (моно) голоса не разделить; озвучка только подмешивается."
+  },
+  {
    "zh": "这个微软账号还没有 Xbox 档案。请先在 xbox.com 用它登录一次，创建档案后再试。",
    "src": "src/xbox/Account.cpp",
    "zh-TW": "這個微軟帳號還沒有 Xbox 檔案。請先在 xbox.com 用它登入一次，建立檔案後再試。",
@@ -38988,6 +39313,45 @@
    "de": "Konfigurieren Sie die Eingabe- und Videoeigenschaften, die vom Treiber angezeigt werden. Schließen Sie zuerst andere Erfassungsanwendungen mit dem Gerät.",
    "pt-BR": "Configure as propriedades de entrada e vídeo expostas pelo driver. Feche outros aplicativos de captura usando o dispositivo primeiro.",
    "ru": "Настройка свойств ввода и видео, выставленных водителем. Сначала закройте другие приложения захвата, используя устройство."
+  },
+  {
+   "zh": "配音语音",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "配音語音",
+   "en": "Dub voice",
+   "ja": "吹き替えの音声",
+   "ko": "더빙 음성",
+   "es": "Voz del doblaje",
+   "fr": "Voix du doublage",
+   "de": "Synchronstimme",
+   "pt-BR": "Voz da dublagem",
+   "ru": "Голос озвучки"
+  },
+  {
+   "zh": "配音运行中",
+   "src": "src/ui/DubVoice.cpp",
+   "zh-TW": "配音執行中",
+   "en": "Dubbing is running",
+   "ja": "吹き替え中",
+   "ko": "더빙 중",
+   "es": "Doblaje en marcha",
+   "fr": "Doublage en cours",
+   "de": "Synchronisation läuft",
+   "pt-BR": "Dublagem em andamento",
+   "ru": "Озвучка работает"
+  },
+  {
+   "zh": "配音音量",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "配音音量",
+   "en": "Dub volume",
+   "ja": "吹き替えの音量",
+   "ko": "더빙 음량",
+   "es": "Volumen del doblaje",
+   "fr": "Volume du doublage",
+   "de": "Lautstärke der Synchronstimme",
+   "pt-BR": "Volume da dublagem",
+   "ru": "Громкость озвучки"
   },
   {
    "zh": "采样",
@@ -40743,6 +41107,32 @@
    "de": "Konnte sich nicht von Audio Underrun erholen",
    "pt-BR": "Não foi possível recuperar da falha de áudio",
    "ru": "Не удалось восстановиться после аудиозаписи"
+  },
+  {
+   "zh": "音频滤镜",
+   "src": "qml/AudioFiltersDialog.qml",
+   "zh-TW": "音訊濾鏡",
+   "en": "Audio filters",
+   "ja": "オーディオフィルター",
+   "ko": "오디오 필터",
+   "es": "Filtros de audio",
+   "fr": "Filtres audio",
+   "de": "Audiofilter",
+   "pt-BR": "Filtros de áudio",
+   "ru": "Аудиофильтры"
+  },
+  {
+   "zh": "音频滤镜…",
+   "src": "qml/PlayerAudioMenu.qml",
+   "zh-TW": "音訊濾鏡…",
+   "en": "Audio filters…",
+   "ja": "オーディオフィルター…",
+   "ko": "오디오 필터…",
+   "es": "Filtros de audio…",
+   "fr": "Filtres audio…",
+   "de": "Audiofilter…",
+   "pt-BR": "Filtros de áudio…",
+   "ru": "Аудиофильтры…"
   },
   {
    "zh": "音频漂移校正失败",

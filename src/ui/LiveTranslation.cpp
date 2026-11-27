@@ -744,6 +744,9 @@ bool LiveTranslation::resolveSpeech(const Work& work) {
 
 void LiveTranslation::queueSpeechResult(const Work& work, QString translation) {
     const auto now = clock_.elapsed();
+    if (!translation.isEmpty() &&
+        QLocale(work.sentence.language).language() != QLocale(targetLanguage_).language())
+        emit speechTranslated(translation, targetLanguage_, work.sentence.endUs);
     if (speechReady_.size() >= size_t(maxSpeechQueue)) {
         const auto& evicted = speechReady_.front();
         if (!evicted.translated.isEmpty()) {
@@ -881,6 +884,7 @@ void LiveTranslation::discardHiddenWork() {
 
 void LiveTranslation::resetCaption() {
     cancelRequest();
+    emit speechReset();
     sentences_.reset(raw_);
     queue_.clear();
     context_.clear();

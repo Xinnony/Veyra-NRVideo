@@ -1,6 +1,7 @@
 // QML bridge: Core responsibilities.
 #include "QmlPlayerBridge_p.h"
 #include "LiveTranslation.h"
+#include "DubVoice.h"
 #include "veyra/sink/AudioGain.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/ui/NvidiaVrrProfileController.h"
@@ -61,6 +62,9 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
                                 QObject* parent)
     : QObject(parent), impl_(std::make_unique<Impl>(engine, std::move(dataDirectory))) {
     liveTranslation_ = new LiveTranslation(QString::fromStdWString(impl_->dataDir.wstring()), this);
+    dubVoice_ = new DubVoice(QString::fromStdWString(impl_->dataDir.wstring()), liveTranslation_, this);
+    connect(liveTranslation_, &LiveTranslation::speechTranslated, dubVoice_, &DubVoice::speak);
+    connect(liveTranslation_, &LiveTranslation::speechReset, dubVoice_, &DubVoice::reset);
     connect(this,&QmlPlayerBridge::mediaOpenRequested,this,[this]{
         liveTranslation_->setPlayback(impl_->snapshot.sessionId, false, true);
         endExclusionMove(false);impl_->exclusionSelected=-1;beginProtectionDraw(QString{});
@@ -730,6 +734,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     // above, using actual provider availability rather than a brand alone.
 }
 QObject* QmlPlayerBridge::liveTranslation() const { return liveTranslation_; }
+QObject* QmlPlayerBridge::dubVoice() const { return dubVoice_; }
 
 QmlPlayerBridge::~QmlPlayerBridge() {
     // Before anything is torn down: this reads the playback position.

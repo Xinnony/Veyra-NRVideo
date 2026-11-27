@@ -173,6 +173,9 @@ Item {
     AudioSettingsDialog {
         dialogHost: host
     }
+    AudioFiltersDialog {
+        dialogHost: host
+    }
 
     // --- 另存为预设 -------------------------------------------------------
     // The design lists every part that will be saved before asking for a name, so

@@ -573,5 +573,6 @@ Rectangle {
         backend: veyra
         aboveLimit: bar.menuBottomLimit
         onSettingsRequested: bar.requestDialog("audio")
+        onFiltersRequested: bar.requestDialog("audioFilters")
     }
 }

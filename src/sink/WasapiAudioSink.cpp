@@ -951,7 +951,7 @@ bool AudioRenderer::start(AudioFormat input,double requestedBufferMs,std::wstrin
 {
     std::lock_guard endpointLock(endpointMutex_);
     if(client_||enum_)return checked(E_UNEXPECTED,"Endpoint already initialized");
-    lastError_=S_OK;bufferedMs_=0;smoothedGain_=0;fadeInRemaining_=0;underruns_=0;underrunFrames_=0;silenceFrames_=0;
+    lastError_=S_OK;bufferedMs_=0;smoothedGain_=0;fadeInRemaining_=0;voiceFilter_.reset();underruns_=0;underrunFrames_=0;silenceFrames_=0;
     liveGap_.reset();
     emptyPulls_=0;recoveryFades_=0;
     clockStalledGaps_=0;
@@ -1144,9 +1144,13 @@ bool AudioRenderer::pumpOnce(AudioPcmSource& pipeline, double* firstWrittenPtsMs
         }
     }
     if (got > 0) {
+        // Audio filters (live dubbing): after the recording/ASR tap above, so
+        // recognition and recordings keep the original voice; before user gain.
+        // A paused endpoint must not consume the translated voice.
+        const bool dubbed=!pausedEndpoint_&&voiceFilter_.process(chunk_.data(),got,inputFormat_,this,recordingClockUs());
         for(unsigned c=0;c<inputFormat_.channels;++c)lastRaw_[c]=chunk_[(got-1)*inputFormat_.channels+c];
         const float target=clampAudioGain(gain_.load());
-        const bool boosted=std::max(target,smoothedGain_)>1.0f;
+        const bool boosted=dubbed||std::max(target,smoothedGain_)>1.0f;
         applyPcmGain(chunk_.data(),got,inputFormat_.channels,target,smoothedGain_);
         if(fadeInRemaining_)fadePcmHead(chunk_.data(),got,inputFormat_.channels,fadeInRemaining_);
         if(target!=loggedGain_&&std::abs(smoothedGain_-target)<.00001f){loggedGain_=target;log::info("audio-gain",std::format("target={} reached={} framesWritten={} clockPreserved=true applicationPCM=true",target,smoothedGain_,framesWritten_.load()));}
@@ -1211,7 +1215,7 @@ void AudioRenderer::stopAndReset()
     timelineWriteFrame_=0;
     bufferedMs_=0;smoothedGain_=0;
     {std::lock_guard lock(timelineMutex_);outputTimeline_.clear();timedPcm_=false;}
-    fading_=false;pausedEndpoint_=false;fadeInRemaining_=0;liveGap_.reset();std::fill(lastRaw_.begin(),lastRaw_.end(),0);
+    fading_=false;pausedEndpoint_=false;fadeInRemaining_=0;voiceFilter_.reset();liveGap_.reset();std::fill(lastRaw_.begin(),lastRaw_.end(),0);
 }
 
 AudioFadeResult AudioRenderer::fadeAndReset(AudioPcmSource& source,const std::atomic<bool>& cancel)
@@ -1265,7 +1269,7 @@ void AudioRenderer::shutdown()
     if (event_ != nullptr) { CloseHandle(event_); event_ = nullptr; }
     running_ = false;
     started_ = false;
-    fading_=false;pausedEndpoint_=false;fadeInRemaining_=0;liveGap_.reset();
+    fading_=false;pausedEndpoint_=false;fadeInRemaining_=0;voiceFilter_.reset();liveGap_.reset();
     bufferedMs_=0;framesWritten_=0;clockFrequency_=0;
     timelineWriteFrame_=0;
     {std::lock_guard lock(timelineMutex_);outputTimeline_.clear();timedPcm_=false;}

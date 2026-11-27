@@ -28,6 +28,7 @@
 #include "veyra/sink/AudioPcmSource.h"
 #include "veyra/sink/AudioFrameTimeline.h"
 #include "veyra/sink/CaptureAudioDsp.h"
+#include "veyra/sink/VoiceFilter.h"
 #include "veyra/media/AudioTrack.h"
 
 struct AVFormatContext;
@@ -411,6 +412,7 @@ private:
     std::atomic<bool> running_{false};
     std::atomic<bool> fading_{false};bool pausedEndpoint_=false;
     size_t fadeInRemaining_=0;
+    VoiceFilter voiceFilter_; // audio owner only
     LiveAudioGapTracker liveGap_;
     int64_t lastTapUs_=0, lastTapEndUs_=0;
     bool lastTapWithoutOutput_=false;

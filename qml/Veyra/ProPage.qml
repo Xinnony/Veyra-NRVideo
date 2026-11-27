@@ -2219,6 +2219,7 @@ VPage {
         objectName: "pro-audio-menu"
         backend: veyra
         onSettingsRequested: root.requestDialog("audio")
+        onFiltersRequested: root.requestDialog("audioFilters")
     }
     // pages-pro.js data-srcbtn: the open source first (checked), then the ways in.
     VMenu {

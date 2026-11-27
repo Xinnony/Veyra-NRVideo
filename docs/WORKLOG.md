@@ -1,5 +1,11 @@
 # 当前工作日志
 
+## 2026-11-27 音频滤镜：实时配音与原声人声压低（未构建）
+
+- 新增“音频滤镜”：实时翻译的每句译文用 Windows 自带语音（离线、免费）或 OpenAI `audio/speech`（需 API 密钥，ChatGPT 订阅不含 API 额度）朗读。`AudioRenderer` 在录制/ASR 抽头之后、音量之前运行 `VoiceFilter`：5.1/7.1 只压低中置声道，立体声用 STFT 相干性压低居中的人声频段（DSP 估计，不是 AI 分离，固定延迟 21.3 ms），再混入配音。一个滑块从“只有原声人声”过渡到“只有配音”。配音比原声晚约 1–3 s，不延迟游戏画面，过时句子跳过。详见 [音频滤镜记录](AUDIO_DUBBING_2026-11-27.md)。
+- 与用户确认的选择有两处偏差，已在记录和界面中说明：立体声没有使用 AI 模型；本机语音用 Windows 语音而不是 Piper，原因都是需要另行授权下载并审计模型。
+- 本机没有 Qt/FFmpeg/依赖/CMake/MSVC 头文件/Windows SDK，**未编译、未运行任何 C++ 测试**。用 Python 逐行移植核对了立体声算法（完美重建、居中 1 kHz 剩 6.3e-5、偏置声与 45 Hz 保留）和 48 kHz 重采样。`extract.py --check` 9 种语言缺译 0。新增 CTest `veyra_voice_filter`、`veyra_dub_audio`，需在构建机编译并实机试听。
+
 ## 2026-11-27 按来源自动预设与专业页分屏标签（未构建）
 
 - 「管理预设」新增“按来源自动应用”：文件（含网络视频）、采集卡、PS5、PC、Xbox、屏幕捕获各可选一个预设，默认全部“不自动”，未选择时行为不变。偏好 `sourcePresets` 按预设名保存，改名时同步，删除后视为未设置。桥接新增 `sourcePresets` 属性和 `setSourcePreset(kind, index)`。

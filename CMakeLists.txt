@@ -605,6 +605,18 @@ add_executable(veyra_audio_gain_tests tests/unit/AudioGainTests.cpp)
 target_compile_features(veyra_audio_gain_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_audio_gain_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 veyra_apply_warnings(veyra_audio_gain_tests)
+# Audio filters (live dubbing): centre/stereo voice reduction and dub mixing.
+add_executable(veyra_voice_filter_tests tests/unit/VoiceFilterTests.cpp src/sink/VoiceFilter.cpp)
+target_compile_features(veyra_voice_filter_tests PRIVATE cxx_std_20)
+target_compile_definitions(veyra_voice_filter_tests PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_include_directories(veyra_voice_filter_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+veyra_apply_warnings(veyra_voice_filter_tests)
+add_test(NAME veyra_voice_filter COMMAND veyra_voice_filter_tests)
+# Translated-voice PCM helpers (WAVE parsing, 48 kHz resampling): header-only.
+add_executable(veyra_dub_audio_tests tests/unit/DubAudioTests.cpp)
+target_compile_features(veyra_dub_audio_tests PRIVATE cxx_std_20)
+veyra_apply_warnings(veyra_dub_audio_tests)
+add_test(NAME veyra_dub_audio COMMAND veyra_dub_audio_tests)
 
 add_executable(veyra_pipeline_tests
   tests/unit/PipelineContractTests.cpp
@@ -776,6 +788,7 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
     src/sink/WasapiAudioSink.cpp
     src/sink/CaptureAudioSession.cpp
     src/sink/CaptureAudioDsp.cpp
+    src/sink/VoiceFilter.cpp
     src/sink/BitstreamAudio.cpp
     src/sink/BitstreamAudioSink.cpp
     src/sink/HdmiBitstreamOutput.cpp
@@ -1413,6 +1426,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
   add_library(veyra_qml_bridge STATIC src/ui/QmlExportQueueModel.cpp include/veyra/ui/QmlExportQueueModel.h src/ui/QmlPlayerBridge.cpp src/ui/ThumbnailProvider.cpp
     src/ui/PlaylistModel.cpp include/veyra/ui/PlaylistModel.h
     src/ui/LiveTranslation.cpp src/ui/LiveTranslation.h
+    src/ui/DubVoice.cpp src/ui/DubVoice.h src/ui/DubAudio.h
     src/ui/LiveSentences.cpp src/ui/LiveSentences.h
     src/ui/LiveAsr.cpp src/ui/LiveAsr.h
     src/ui/AsrAudioTap.cpp src/ui/AsrAudioTap.h
@@ -1504,7 +1518,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
   # Widgets is needed only for QFileDialog: the native file picker is the one
   # piece of the old shell worth keeping, and its own dialog is what users
   # expect from a desktop app. No QWidget UI is created.
-  target_link_libraries(veyra_qml_bridge PUBLIC veyra_engine Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Widgets Qt6::Network PRIVATE shell32 ole32 oleaut32 uiautomationcore iphlpapi ws2_32 ${FFMPEG_LIBRARIES})
+  target_link_libraries(veyra_qml_bridge PUBLIC veyra_engine Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Widgets Qt6::Network PRIVATE windowsapp shell32 ole32 oleaut32 uiautomationcore iphlpapi ws2_32 ${FFMPEG_LIBRARIES})
   add_executable(veyra_playlist_tests tests/unit/PlaylistModelTests.cpp src/ui/PlaylistModel.cpp include/veyra/ui/PlaylistModel.h)
   set_target_properties(veyra_playlist_tests PROPERTIES AUTOMOC ON)
   target_compile_features(veyra_playlist_tests PRIVATE cxx_std_20)

@@ -92,5 +92,6 @@ ScreenSourceDialog 1.0 ScreenSourceDialog.qml
 SubtitleSettingsDialog 1.0 SubtitleSettingsDialog.qml
 LiveTranslationDialog 1.0 LiveTranslationDialog.qml
 AudioSettingsDialog 1.0 AudioSettingsDialog.qml
+AudioFiltersDialog 1.0 AudioFiltersDialog.qml
 SavePresetDialog 1.0 SavePresetDialog.qml
 ManagePresetsDialog 1.0 ManagePresetsDialog.qml

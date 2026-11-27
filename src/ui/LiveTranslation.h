@@ -130,6 +130,10 @@ signals:
     void changed();
     void captionChanged();
     void previewChanged();
+    // Live dubbing: a speech sentence translated into another language
+    // (endUs: recording clock at the end of the original speech).
+    void speechTranslated(const QString& text, const QString& language, qint64 endUs);
+    void speechReset();
 private:
     struct Work {
         quint64 id = 0;
