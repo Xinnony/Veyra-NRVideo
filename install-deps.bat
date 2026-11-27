@@ -5,7 +5,8 @@ rem
 rem  Reproduit en local la chaine de la CI .github/workflows/windows-build.yml :
 rem  outils (Git, Python 3.11, CMake, Ninja, VS 2022 Build Tools, Rust),
 rem  SDK epingles (scripts/ci/fetch-sdks.ps1), Qt 6.8.3, ONNX Runtime DirectML,
-rem  libdovi 3.4.0, vcpkg a la builtin-baseline et FFmpeg 9.0.1 patche.
+rem  libdovi 3.4.0, vcpkg a la builtin-baseline, FFmpeg 9.0.1 patche et les
+rem  bibliotheques du streaming Xbox (libdatachannel, nlohmann-json, Opus).
 rem
 rem  Idempotent : chaque etape deja satisfaite est sautee. Ne lance pas le build.
 rem  Tout est installe sous le dossier deps (defaut : <lecteur>:\Veyra-deps),
@@ -115,6 +116,7 @@ call :def ort        2  "ONNX Runtime DirectML %ORT_VERSION% + DirectML %DML_VER
 call :def dovi       4  "libdovi 3.4.0 compilé depuis les sources"
 call :def vcpkg      3  "vcpkg à la baseline + port FFmpeg patché"
 call :def ffmpeg    40  "FFmpeg 9.0.1 patché, dav1d, zlib, libass, OpenSSL (30 à 90 min)"
+call :def xbox      10  "Streaming Xbox : libdatachannel, nlohmann-json, Opus, SDL3 (10 à 30 min)"
 call :def envfiles   1  "Fichiers d'environnement et de configuration CMake"
 
 set "CUR=Démarrage"
@@ -502,6 +504,25 @@ type "%DEPS%\vcpkg-list.txt"
 set "STEP_NOTE=compilés"
 exit /b 0
 
+:step_xbox
+rem Versions et correctif libjuice : scripts\xbox\dependency-lock.json.
+set "XB=%VCPKG%\installed\x64-windows-static\share"
+set "XB_OK=1"
+if not exist "%XB%\libdatachannel\LibDataChannelConfig.cmake" set "XB_OK=0"
+if not exist "%XB%\nlohmann_json\nlohmann_jsonConfig.cmake" set "XB_OK=0"
+if not exist "%XB%\opus\OpusConfig.cmake" set "XB_OK=0"
+if not exist "%XB%\sdl3\SDL3Config.cmake" set "XB_OK=0"
+if "%XB_OK%"=="1" (set "STEP_NOTE=déjà présents" & exit /b 0)
+if "%DRYRUN%"=="1" (set "STEP_TODO=1" & set "STEP_NOTE=à compiler" & exit /b 0)
+if not exist "%DEPS%\vcpkg-cache" mkdir "%DEPS%\vcpkg-cache"
+set "VCPKG_BINARY_SOURCES=clear;files,%DEPS%\vcpkg-cache,readwrite"
+set "VCPKG_DISABLE_METRICS=1"
+"%VCPKG%\vcpkg.exe" install --classic --overlay-ports="%REPO%\scripts\xbox\vcpkg-overlay" --clean-after-build "libdatachannel[srtp,ws]:x64-windows-static" "nlohmann-json:x64-windows-static" "opus:x64-windows-static" "sdl3:x64-windows-static" || exit /b 1
+if not exist "%XB%\libdatachannel\LibDataChannelConfig.cmake" (echo LibDataChannelConfig.cmake absent & exit /b 1)
+"%VCPKG%\vcpkg.exe" list --classic > "%DEPS%\vcpkg-list.txt"
+set "STEP_NOTE=compilés"
+exit /b 0
+
 :step_envfiles
 if "%DRYRUN%"=="1" (set "STEP_NOTE=sauté en simulation" & exit /b 0)
 call :find_vs || (echo Visual Studio C++ introuvable & exit /b 1)
@@ -512,6 +533,13 @@ set "F_ASS=%VCPKG:\=/%/installed/x64-windows-static"
 set "F_DOVI=%DOVI:\=/%"
 set "F_ORT=%ORT_ROOT:\=/%"
 set "F_QT=%QT_DIR:\=/%"
+rem Xbox active seulement si ses bibliotheques sont la (CMake les trouve via CMAKE_PREFIX_PATH).
+set "F_XBOX="
+set "F_PREFIX=%F_QT%"
+if exist "%VCPKG%\installed\x64-windows-static\share\libdatachannel\LibDataChannelConfig.cmake" (
+    set "F_XBOX=-DVEYRA_ENABLE_XBOX=ON"
+    set "F_PREFIX=%F_QT%;%F_ASS%"
+)
 
 set "F=%DEPS%\veyra-deps-env.cmd"
 > "%F%" echo @echo off
@@ -534,7 +562,7 @@ set "F=%DEPS%\veyra-configure.cmd"
 >>"%F%" echo setlocal
 >>"%F%" echo call "%VCVARS%" ^>nul ^|^| exit /b 1
 >>"%F%" echo cd /d "%REPO%" ^|^| exit /b 1
->>"%F%" echo cmake --preset x64-release -B "%BUILD_DIR%" -DVEYRA_BUILD_QML_UI=ON -DVEYRA_ENABLE_EXPERIMENTAL_DLSSNR=ON "-DVEYRA_DLSS_SDK_ROOT=%F_DLSS%" "-DVEYRA_FFMPEG_ROOT=%F_FF%" "-DVEYRA_LIBASS_ROOT=%F_ASS%" "-DVEYRA_LIBDOVI_ROOT=%F_DOVI%" "-DVEYRA_ORT_DML_ROOT=%F_ORT%" "-DOPENSSL_ROOT_DIR=%F_FF%" "-DCMAKE_PREFIX_PATH=%F_QT%" %%*
+>>"%F%" echo cmake --preset x64-release -B "%BUILD_DIR%" -DVEYRA_BUILD_QML_UI=ON -DVEYRA_ENABLE_EXPERIMENTAL_DLSSNR=ON "-DVEYRA_DLSS_SDK_ROOT=%F_DLSS%" "-DVEYRA_FFMPEG_ROOT=%F_FF%" "-DVEYRA_LIBASS_ROOT=%F_ASS%" "-DVEYRA_LIBDOVI_ROOT=%F_DOVI%" "-DVEYRA_ORT_DML_ROOT=%F_ORT%" "-DOPENSSL_ROOT_DIR=%F_FF%" "-DCMAKE_PREFIX_PATH=%F_PREFIX%" %F_XBOX% %%*
 >>"%F%" echo if errorlevel 1 exit /b 1
 >>"%F%" echo echo.
 >>"%F%" echo echo Configuration OK. Compiler avec :
@@ -542,4 +570,5 @@ set "F=%DEPS%\veyra-configure.cmd"
 type "%DEPS%\veyra-deps-env.cmd"
 type "%DEPS%\veyra-configure.cmd"
 set "STEP_NOTE=veyra-deps-env.cmd, veyra-configure.cmd"
+if defined F_XBOX set "STEP_NOTE=!STEP_NOTE!, Xbox activé"
 exit /b 0
