@@ -6,6 +6,8 @@
 
 namespace veyra::sink {
 namespace {
+// The renderer mix and DubVoiceQueue both run at 48 kHz (see VoiceFilter.h).
+constexpr int kAudioRate=48000;
 std::atomic<bool> gEnabled{false};
 std::atomic<float> gBalance{0.75f};
 std::atomic<float> gDubGain{1.0f};

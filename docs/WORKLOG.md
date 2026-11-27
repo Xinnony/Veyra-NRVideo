@@ -1,5 +1,12 @@
 # 当前工作日志
 
+## 2026-11-27 本机首次精简开发构建 veyra_qml_ui
+
+- 新装依赖（均在源码树外或已忽略目录）：VS 2022 Build Tools（MSVC 14.44、Windows SDK 10.0.26100、CMake 3.31、Ninja）、Qt 6.8.3 msvc2022_64（`C:/veyra-deps/qt`）、vcpkg 按 `vcpkg.json` 基线构建的 FFmpeg 9.0.1（`C:/veyra-deps/installed`，未打 PS5 slices/D3D12VA 补丁）、OpenSSL 3.6.5（`C:/veyra-deps/installed-openssl`）、DLSS SDK v310.7.0、nv-codec-headers n13.0.19.0、Optical Flow SDK 5.0.7（`third_party_local/nvidia`）。
+- 配置：`VEYRA_BUILD_QML_UI=ON`、`VEYRA_ENABLE_EXPERIMENTAL_DLSSNR=ON`，关闭 libdovi、去隔行、PS5/PC/Xbox 串流；AMF、ORT-DML、XeSS、FidelityFX、DeckLink、libass 未提供。命令见 `out/build/veyra-configure.cmd`（未入库）。这不是完整发行构建。
+- 首次编译失败：`src/sink/VoiceFilter.cpp` 使用未声明的 `kAudioRate`（音频滤镜提交 eed2ee5a）。按头文件注明的 48 kHz 在该文件匿名命名空间补 `constexpr int kAudioRate=48000;` 后，`veyra_qml_ui` 目标 53/53 链接成功（`out/build/x64-release/veyra_qml_ui.exe`，9,173,504 字节），含按来源自动预设与音频滤镜代码。
+- 只编译了 `veyra_qml_ui` 目标：未运行任何测试，未启动程序，未部署 Qt/FFmpeg DLL 与着色器 stage，未实测任何功能。
+
 ## 2026-11-27 音频滤镜：实时配音与原声人声压低（未构建）
 
 - 新增“音频滤镜”：实时翻译的每句译文用 Windows 自带语音（离线、免费）或 OpenAI `audio/speech`（需 API 密钥，ChatGPT 订阅不含 API 额度）朗读。`AudioRenderer` 在录制/ASR 抽头之后、音量之前运行 `VoiceFilter`：5.1/7.1 只压低中置声道，立体声用 STFT 相干性压低居中的人声频段（DSP 估计，不是 AI 分离，固定延迟 21.3 ms），再混入配音。一个滑块从“只有原声人声”过渡到“只有配音”。配音比原声晚约 1–3 s，不延迟游戏画面，过时句子跳过。详见 [音频滤镜记录](AUDIO_DUBBING_2026-11-27.md)。
