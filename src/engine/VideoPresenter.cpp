@@ -511,6 +511,20 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         D3D12_RESOURCE_BARRIER b{};b.Type=D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;b.Transition.pResource=reference;b.Transition.Subresource=D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;b.Transition.StateBefore=D3D12_RESOURCE_STATE_COMMON;b.Transition.StateAfter=D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;list->ResourceBarrier(1,&b);
         dims[2]=samplingFlags+curveFlag+(graph.hdr10Output()?4:graph.hdrOutput()?0:1)+(graph.videoHdrActive()?8:0);list->SetGraphicsRoot32BitConstants(0,16,dims,0);list->SetGraphicsRootDescriptorTable(1,{pass_.heap->GetGPUDescriptorHandleForHeapStart().ptr+size_t(pipeline::kOutputPoolSlots+slot+(baseReference?2:0))*pass_.increment});
         if(comparison==2)rect.right=LONG(std::clamp((rc.right*.5f+(std::clamp(split,0.0f,1.0f)-view.centerX)*renderW)*sink_.bufferWidth()/rc.right,0.0f,float(sink_.bufferWidth())));list->RSSetScissorRects(1,&rect);list->DrawInstanced(3,1,0,0);
+        if(comparison==2&&rc.bottom>0){
+            // Divider at the split: a light bar with a dark edge, limited to the picture's height.
+            // Clears ignore the scissor. Values per output encoding: PQ 0.58 ≈ 203 nits, scRGB 2.5 = 200 nits.
+            const float scaleY=float(sink_.bufferHeight())/float(rc.bottom);
+            const LONG top=LONG(std::clamp((rc.bottom*.5f-view.centerY*renderH)*scaleY,0.0f,float(sink_.bufferHeight())));
+            const LONG bottom=LONG(std::clamp((rc.bottom*.5f+(1.0f-view.centerY)*renderH)*scaleY,0.0f,float(sink_.bufferHeight())));
+            const LONG half=std::max<LONG>(1,LONG(sink_.bufferWidth()/1280));
+            const LONG maxX=LONG(sink_.bufferWidth());
+            const float light=graph.hdr10Output()?0.58f:graph.hdrOutput()?2.5f:0.92f;
+            const float lineColor[4]={light,light,light,1},edgeColor[4]={0,0,0,1};
+            const D3D12_RECT edge{std::clamp<LONG>(rect.right-half-1,0,maxX),top,std::clamp<LONG>(rect.right+half+1,0,maxX),bottom};
+            const D3D12_RECT line{std::clamp<LONG>(rect.right-half,0,maxX),top,std::clamp<LONG>(rect.right+half,0,maxX),bottom};
+            if(bottom>top&&edge.right>edge.left){list->ClearRenderTargetView(rtv,edgeColor,1,&edge);if(line.right>line.left)list->ClearRenderTargetView(rtv,lineColor,1,&line);}
+        }
         std::swap(b.Transition.StateBefore,b.Transition.StateAfter);list->ResourceBarrier(1,&b);
         if(veyra::log::verboseFrameLogs())veyra::log::info("comparison",std::format("real-frame source={} epoch={} revision={} reference={} mode={} split={} (same leased frame)",identity.sourceFrameId,identity.epoch,identity.settingsRevision,baseReference?"base":"input",comparison,split));
     }

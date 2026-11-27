@@ -1620,6 +1620,8 @@ private:
     void rememberSource(const QString& kind, const QString& label);
     // Edits either mask node in the active chain; rolls back when refused.
     void updateMaskOverlay();
+    // SOURCE | VEYRA label at the foot of the split-compare divider.
+    void updateCompareBadge();
     QVariantMap maskState(bool allEffects) const;
     bool editProtection(const std::function<bool(engine::ChainNode&)>& edit,bool allEffects=false);
     engine::ColorSettings selectedColourSettings() const;

@@ -456,6 +456,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
                 : tr("检测到可能导致画面撕裂的送显时序。如果看到了撕裂，请检查显卡驱动中的垂直同步设置。"));
         }
         updateMaskOverlay();
+        updateCompareBadge();
         tickSubtitles();
         tickImageBatch();
         tickCapture();

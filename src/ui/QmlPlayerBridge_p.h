@@ -538,6 +538,8 @@ struct QmlPlayerBridge::Impl {
     QString protDraw;                         // "" | rect | ellipse
     bool protExclusion=false;
     HWND protOverlay = nullptr;
+    HWND compareBadge = nullptr;          // layered child: SOURCE | VEYRA under the split divider
+    QVariantList compareBadgeGeometry;    // repaint only when position or size changes
     int exclusionSelected = -1;
     bool exclusionDragging = false;
     engine::ProtectionRect exclusionOriginal{}, exclusionPreview{};

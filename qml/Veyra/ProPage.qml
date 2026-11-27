@@ -879,6 +879,15 @@ VPage {
                     visible: veyra.hasSource && (!veyra.isCapture || proAudioMenu.captureSource)
                     onTapped: proAudioMenu.openAt(proAudioButton, "up")
                 }
+                // Split before/after compare, toggled beside fullscreen (same state as 显示 → 原画 / 增强对比).
+                BarButton {
+                    objectName: "pro-compare-toggle"
+                    glyph: "split"
+                    tip: qsTr("原画 / 增强对比")
+                    highlighted: veyra.compareMode === 2
+                    visible: veyra.hasSource
+                    onTapped: veyra.compareMode = veyra.compareMode === 2 ? 0 : 2
+                }
                 // Fullscreen, at the picture's bottom-right corner where players put it.
                 Item {
                     objectName: "pro-fullscreen"

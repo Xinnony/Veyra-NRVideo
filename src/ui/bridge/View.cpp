@@ -292,12 +292,88 @@ void QmlPlayerBridge::updateMaskOverlay() {
     SelectObject(memory,previous);DeleteObject(bitmap);DeleteDC(memory);ReleaseDC(nullptr,screen);
 }
 
+void QmlPlayerBridge::updateCompareBadge() {
+    auto& i=*impl_;
+    const auto hide=[&]{if(i.compareBadge)ShowWindow(i.compareBadge,SW_HIDE);i.compareBadgeGeometry.clear();};
+    if(i.compareMode!=2||i.holdKeyDown||!hasSource()||!i.videoWindow||!IsWindowVisible(i.videoWindow))return hide();
+    RECT c{};GetClientRect(i.videoWindow,&c);if(c.right<1||c.bottom<1)return hide();
+    const auto e=i.snapshot.metrics.resolution.output;const auto view=i.engine.previewView();
+    if(!e.width||!e.height)return hide();
+    // Same picture mapping as setCompareSplitAt and the presenter's divider.
+    const auto [w,h]=view.renderedSize(float(c.right),float(c.bottom),float(e.width),float(e.height));
+    const float left=c.right*.5f-w*view.centerX,top=c.bottom*.5f-h*view.centerY;
+    const float pictureLeft=std::max(0.0f,left),pictureRight=std::min(float(c.right),left+w);
+    const float pictureBottom=std::min(float(c.bottom),top+h);
+    const int x=int(std::lround(left+float(i.compareSplit)*w));
+    const int fontPx=std::clamp(int(std::lround(h/48.0f)),10,16);
+    const int padX=fontPx*3/4,gap=fontPx*3/4,height=fontPx*2;
+    const QVariantList geometry{int(c.right),int(c.bottom),x,int(pictureLeft),int(pictureRight),int(pictureBottom),fontPx};
+    if(geometry==i.compareBadgeGeometry&&i.compareBadge&&IsWindowVisible(i.compareBadge))return;
+    if(!i.compareBadge){ensureGdiplus();i.compareBadge=createSubtitleOverlay(i.videoWindow);}
+    if(!i.compareBadge)return;
+
+    Gdiplus::FontFamily family(L"Segoe UI");
+    Gdiplus::Font font(&family,float(fontPx),Gdiplus::FontStyleBold,Gdiplus::UnitPixel);
+    Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericTypographic());
+    format.SetFormatFlags(format.GetFormatFlags()|Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
+    const wchar_t* sourceText=L"SOURCE";const wchar_t* veyraText=L"VEYRA";
+    float sourceW=0,veyraW=0;
+    {
+        HDC probe=GetDC(nullptr);Gdiplus::Graphics m(probe);Gdiplus::RectF box;
+        m.MeasureString(sourceText,-1,&font,Gdiplus::PointF(0,0),&format,&box);sourceW=box.Width;
+        m.MeasureString(veyraText,-1,&font,Gdiplus::PointF(0,0),&format,&box);veyraW=box.Width;
+        ReleaseDC(nullptr,probe);
+    }
+    // The pill is centred on the divider; near an edge it slides inside the picture
+    // and the divider tick moves within it, so the label stays attached to the bar.
+    const int leftPart=padX+int(std::ceil(sourceW))+gap,rightPart=gap+int(std::ceil(veyraW))+padX;
+    const int width=leftPart+rightPart;
+    int originX=x-leftPart;
+    originX=std::clamp(originX,int(pictureLeft),std::max(int(pictureLeft),int(pictureRight)-width));
+    const int originY=int(pictureBottom)-height;   // flush with the bottom of the picture
+    if(originY<0||pictureRight-pictureLeft<float(width))return hide();
+    const int tick=std::clamp(x-originX,1,width-2);
+
+    SetWindowPos(i.compareBadge,HWND_TOP,originX,originY,width,height,SWP_NOACTIVATE);
+    BITMAPINFO info{};info.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);info.bmiHeader.biWidth=width;
+    info.bmiHeader.biHeight=-height;info.bmiHeader.biPlanes=1;info.bmiHeader.biBitCount=32;
+    HDC screen=GetDC(nullptr),memory=CreateCompatibleDC(screen);void* bits=nullptr;
+    HBITMAP bitmap=CreateDIBSection(screen,&info,DIB_RGB_COLORS,&bits,nullptr,0);
+    if(!bitmap||!bits){if(bitmap)DeleteObject(bitmap);DeleteDC(memory);ReleaseDC(nullptr,screen);return;}
+    const auto previous=SelectObject(memory,bitmap);memset(bits,0,size_t(width)*size_t(height)*4);
+    {
+        Gdiplus::Bitmap canvas(width,height,width*4,PixelFormat32bppPARGB,static_cast<BYTE*>(bits));
+        Gdiplus::Graphics g(&canvas);g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+        g.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
+        // A tab sitting on the picture's bottom edge: rounded top corners, square base.
+        const float r=height*.4f;Gdiplus::GraphicsPath pill;
+        pill.AddLine(0.5f,float(height),0.5f,r);
+        pill.AddArc(0.5f,0.5f,2*r,2*r,180,90);
+        pill.AddArc(width-2*r-0.5f,0.5f,2*r,2*r,270,90);
+        pill.AddLine(width-0.5f,r,width-0.5f,float(height));pill.CloseFigure();
+        Gdiplus::SolidBrush back(Gdiplus::Color(150,12,12,16));g.FillPath(&back,&pill);
+        Gdiplus::Pen rim(Gdiplus::Color(60,255,255,255),1.0f);g.DrawPath(&rim,&pill);
+        Gdiplus::SolidBrush divider(Gdiplus::Color(235,235,235,235));
+        g.FillRectangle(&divider,float(tick)-1.0f,0.0f,2.0f,float(height));
+        const float textY=(height-font.GetHeight(&g))*.5f;
+        Gdiplus::SolidBrush sourceInk(Gdiplus::Color(215,210,210,215)),veyraInk(Gdiplus::Color(245,255,255,255));
+        g.DrawString(sourceText,-1,&font,Gdiplus::PointF(float(padX),textY),&format,&sourceInk);
+        g.DrawString(veyraText,-1,&font,Gdiplus::PointF(float(leftPart+gap),textY),&format,&veyraInk);
+    }
+    SIZE size{width,height};POINT origin{};BLENDFUNCTION blend{AC_SRC_OVER,0,255,AC_SRC_ALPHA};
+    if(UpdateLayeredWindow(i.compareBadge,screen,nullptr,&size,memory,&origin,0,&blend,ULW_ALPHA)){
+        ShowWindow(i.compareBadge,SW_SHOWNOACTIVATE);i.compareBadgeGeometry=geometry;
+    }
+    SelectObject(memory,previous);DeleteObject(bitmap);DeleteDC(memory);ReleaseDC(nullptr,screen);
+}
+
 // --- design gap B8-B11: compare and aspect ------------------------------------
 int QmlPlayerBridge::compareMode() const { return impl_->compareMode; }
 void QmlPlayerBridge::setCompareMode(int value) {
     if (value < 0 || value > 2 || impl_->compareMode == value) return;
     impl_->compareMode = value;
     if (!impl_->holdKeyDown) impl_->engine.comparison(value, impl_->compareBase, float(impl_->compareSplit));
+    updateCompareBadge();
     veyra::log::info("ui-compare", std::format("mode={} base={} split={:.3f}", value, impl_->compareBase, impl_->compareSplit));
     // Comparison shows real frames only (a generated frame has no original to set beside
     // it), so frame generation pauses while it is on. A field user left split compare on
@@ -328,6 +404,7 @@ void QmlPlayerBridge::setCompareSplitAt(double fx) {
     const float left = r.right * .5f - contentWidth * view.centerX;
     i.compareSplit = std::clamp((float(fx) * r.right - left) / std::max(1.0f, contentWidth), 0.0f, 1.0f);
     if (!i.holdKeyDown) i.engine.comparison(i.compareMode, i.compareBase, float(i.compareSplit));
+    updateCompareBadge();
     emit compareChanged();
 }
 int QmlPlayerBridge::aspectMode() const { return impl_->screenFillActive ? 2 : impl_->aspectMode; }
