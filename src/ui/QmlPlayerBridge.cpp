@@ -584,6 +584,8 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
                     impl_->netLossNoticeAt = now;
                 }
             }
+            // A source-specific preset first, so the automatic FG multiplier decides on it.
+            maybeApplySourcePreset();
             // 「自动」倍率：每个会话进入播放后决定一次（见 applyFgAutoMultiplier）。
             maybeApplyFgAutoMultiplier();
             emit snapshotChanged();

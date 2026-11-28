@@ -1051,10 +1051,20 @@ bool QmlPlayerBridge::deletePreset(int index) {
 
 bool QmlPlayerBridge::renamePreset(int index, const QString& name) {
     if (index < 0 || size_t(index) >= impl_->facade.presets().entries().size()) return false;
+    const auto oldName = utf8Of(impl_->facade.presets().entries()[size_t(index)].name);
     const bool selected = impl_->exportPresetName == impl_->facade.presets().entries()[size_t(index)].name;
     const bool ok = impl_->facade.presets().rename(size_t(index), wideOf(name));
     if (ok) {
         if (selected) { impl_->exportPresetName = wideOf(name); emit exportChanged(); }
+        // Automatic per-source presets follow the rename.
+        auto stored = impl_->prefs.value(QStringLiteral("sourcePresets")).toMap();
+        bool moved = false;
+        for (auto it = stored.begin(); it != stored.end(); ++it)
+            if (it.value().toString() == oldName) { it.value() = name; moved = true; }
+        if (moved) {
+            impl_->prefs[QStringLiteral("sourcePresets")] = stored;
+            if (!impl_->savePrefs()) veyra::log::warn("ui-source-preset", "renamed preset not saved in source presets");
+        }
         emit presetsChanged();
     }
     return ok;
@@ -1114,6 +1124,86 @@ bool QmlPlayerBridge::setDefaultPreset(int index) {
     if (ok) emit presetsChanged();
     else emit notice(tr("默认预设保存失败：") + uiText(impl_->facade.presets().error()), true);
     return ok;
+}
+
+// --- automatic presets per source kind -----------------------------------------
+// prefs["sourcePresets"] maps a source kind to a preset *name*, so reordering or
+// deleting other presets never retargets it. A name that no longer exists is
+// simply ignored (and shown as "none" by sourcePresets()).
+namespace {
+const QStringList& sourcePresetKinds() {
+    static const QStringList kinds{QStringLiteral("file"), QStringLiteral("capture"), QStringLiteral("ps5"),
+                                   QStringLiteral("moonlight"), QStringLiteral("xbox"), QStringLiteral("screen")};
+    return kinds;
+}
+// Network videos follow the file preset; still images keep whatever is active.
+QString sourcePresetKindOf(const QString& kind) {
+    if (kind == QLatin1String("url")) return QStringLiteral("file");
+    return sourcePresetKinds().contains(kind) ? kind : QString();
+}
+}
+
+QVariantMap QmlPlayerBridge::sourcePresets() const {
+    const auto stored = impl_->prefs.value(QStringLiteral("sourcePresets")).toMap();
+    const auto& entries = impl_->facade.presets().entries();
+    QVariantMap out;
+    for (const auto& kind : sourcePresetKinds()) {
+        int index = -1;
+        const auto name = wideOf(stored.value(kind).toString());
+        if (!name.empty())
+            for (size_t i = 0; i < entries.size(); ++i) if (entries[i].name == name) { index = int(i); break; }
+        out[kind] = index;
+    }
+    return out;
+}
+
+bool QmlPlayerBridge::setSourcePreset(const QString& kind, int index) {
+    if (!sourcePresetKinds().contains(kind)) return false;
+    const auto& entries = impl_->facade.presets().entries();
+    if (index < -1 || (index >= 0 && size_t(index) >= entries.size())) return false;
+    auto stored = impl_->prefs.value(QStringLiteral("sourcePresets")).toMap();
+    const auto previous = stored;
+    if (index < 0) stored.remove(kind);
+    else stored[kind] = utf8Of(entries[size_t(index)].name);
+    if (stored.isEmpty()) impl_->prefs.remove(QStringLiteral("sourcePresets"));
+    else impl_->prefs[QStringLiteral("sourcePresets")] = stored;
+    if (!impl_->savePrefs()) {
+        if (previous.isEmpty()) impl_->prefs.remove(QStringLiteral("sourcePresets"));
+        else impl_->prefs[QStringLiteral("sourcePresets")] = previous;
+        emit notice(tr("自动预设保存失败"), true);
+        return false;
+    }
+    // The next source of this kind applies the new choice, even if one is open now.
+    if (impl_->sourcePresetKind == kind) impl_->sourcePresetKind.clear();
+    veyra::log::info("ui-source-preset", std::format("kind={} preset={}", kind.toStdString(),
+        index < 0 ? std::string("none") : utf8Of(entries[size_t(index)].name).toStdString()));
+    emit presetsChanged();
+    return true;
+}
+
+void QmlPlayerBridge::maybeApplySourcePreset() {
+    const auto& s = impl_->snapshot;
+    if (!s.running || s.sessionId == 0 || impl_->sourcePresetSession == s.sessionId) return;
+    impl_->sourcePresetSession = s.sessionId;
+    const QString kind = sourcePresetKindOf(sourceKind());
+    // Opening another source of the same kind keeps what the user adjusted since.
+    if (kind.isEmpty() || kind == impl_->sourcePresetKind) return;
+    impl_->sourcePresetKind = kind;
+    const auto name = wideOf(impl_->prefs.value(QStringLiteral("sourcePresets")).toMap().value(kind).toString());
+    if (name.empty()) return;
+    const auto& entries = impl_->facade.presets().entries();
+    const auto found = std::find_if(entries.begin(), entries.end(), [&](const auto& e) { return e.name == name; });
+    if (found == entries.end()) {
+        veyra::log::warn("ui-source-preset", std::format("kind={} preset missing", kind.toStdString()));
+        return;
+    }
+    if (found->kind != impl_->chain.mode) {
+        emit notice(tr("预设“%1”属于另一种编辑模式，未自动应用").arg(utf8Of(name)), true);
+        return;
+    }
+    const int index = int(found - entries.begin());
+    veyra::log::info("ui-source-preset", std::format("apply kind={} session={}", kind.toStdString(), s.sessionId));
+    if (applyPresetIndex(index)) emit notice(tr("已自动应用预设“%1”").arg(utf8Of(name)), false);
 }
 
 bool QmlPlayerBridge::duplicatePreset(int index) {

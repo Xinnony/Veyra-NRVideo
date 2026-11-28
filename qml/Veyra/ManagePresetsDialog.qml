@@ -160,6 +160,59 @@ DialogLayer {
                 .map(p => ({ label: p.name, note: p.note, icon: "upload", preset: p.index }))
             onPicked: (i, o) => veyra.exportPresetDialog(o.preset)
         }
+        // Automatic preset per source kind. Applied once when a different kind of
+        // source starts; reopening the same kind keeps the user's manual changes.
+        Text {
+            Layout.fillWidth: true
+            Layout.topMargin: 8
+            text: qsTr("按来源自动应用")
+            color: Theme.t1
+            font.family: Theme.fontUi
+            font.pixelSize: Theme.fsBody
+            font.weight: Font.DemiBold
+        }
+        Text {
+            Layout.fillWidth: true
+            text: qsTr("打开另一类来源时自动套用所选预设；连续打开同类来源不会覆盖你的手动调整。")
+            color: Theme.t3
+            font.family: Theme.fontUi
+            font.pixelSize: Theme.fsSmall
+            wrapMode: Text.WordWrap
+        }
+        Repeater {
+            model: manageDialog.shown ? [
+                { kind: "file", label: qsTr("文件") },
+                { kind: "capture", label: qsTr("采集卡") },
+                { kind: "ps5", label: qsTr("PS5 串流") },
+                { kind: "moonlight", label: qsTr("PC 串流") },
+                { kind: "xbox", label: qsTr("Xbox 串流") },
+                { kind: "screen", label: qsTr("屏幕捕获") }
+            ] : []
+            delegate: VRow {
+                id: sourcePresetRow
+                required property var modelData
+                objectName: "source-preset-row-" + modelData.kind
+                Layout.fillWidth: true
+                label: modelData.label
+                readonly property int selected: veyra.sourcePresets[modelData.kind] !== undefined ? veyra.sourcePresets[modelData.kind] : -1
+                VSelect {
+                    objectName: "source-preset-" + sourcePresetRow.modelData.kind
+                    title: sourcePresetRow.modelData.label
+                    implicitWidth: 220
+                    options: [{ id: "-1", label: qsTr("不自动") }].concat(
+                        veyra.presets.map(p => ({ id: String(p.index), label: p.name })))
+                    value: {
+                        const o = options.find(o => o.id === String(sourcePresetRow.selected))
+                        return o ? o.label : options[0].label
+                    }
+                    onPicked: id => {
+                        const ok = veyra.setSourcePreset(sourcePresetRow.modelData.kind, Number(id))
+                        manageDialog.feedbackError = !ok
+                        manageDialog.feedback = ok ? qsTr("自动预设已保存") : qsTr("自动预设保存失败")
+                    }
+                }
+            }
+        }
         Text {
             objectName: "preset-manage-feedback"
             Layout.fillWidth: true
