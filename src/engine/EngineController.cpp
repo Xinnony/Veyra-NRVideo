@@ -1169,7 +1169,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
             if(physicalCapture){
                 // Commit monitoring before the first PCM can reach the endpoint,
                 // including deferred bitstream/vendor sessions.
-                captureSource.setAudioGain(muted_||!captureAudioMonitoring_?0.0f:volume_.load());
+                captureSource.setAudioGain(muted_||!captureAudioMonitoring_?0.0f:volume_.load()*audioDuck_.load());
                 captureSource.setAudioSync(unsigned(options.settings.audioSync),options.settings.audioOffsetMs);
                 if(!captureSource.start()){status(captureSource.errorMessage().empty()?L"无法启动采集，请查看诊断":captureSource.errorMessage(),true);break;}
             }
@@ -2131,7 +2131,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     captureSource.setVerticalFlip(options.settings.captureFlipVertical);
                     captureSource.setBufferMode(unsigned(options.settings.captureBuffer));
                     if(testCaptureNoVideo)testCaptureFrameDeadline=Clock::now()+std::chrono::seconds(3);
-                    const bool reopened=testCaptureNoVideo||captureSource.reconnect(muted_||!captureAudioMonitoring_?0.0f:volume_.load(),
+                    const bool reopened=testCaptureNoVideo||captureSource.reconnect(muted_||!captureAudioMonitoring_?0.0f:volume_.load()*audioDuck_.load(),
                         unsigned(options.settings.audioSync),options.settings.audioOffsetMs);
                     if(stop_)break;
                     if(!reopened){
@@ -2183,7 +2183,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     {std::lock_guard lock(mutex_);snapshot_.gpuFailed=true;}
                     status(alive?L"视频队列或呈现失败；GPU 未报告设备移除，请查看诊断":L"GPU 设备已移除或驱动已重置；请稍后重新连接，可切换 NR 运行库后重试",true);break;
                 }
-                const float gain=muted_?0.0f:volume_.load();audio.setGain(gain);
+                const float gain=muted_?0.0f:volume_.load()*audioDuck_.load();audio.setGain(gain);
                 const float captureGain=captureAudioMonitoring_?gain:0.0f;
                 if(physicalCapture)captureSource.recoverAudio(captureGain,unsigned(options.settings.audioSync),options.settings.audioOffsetMs);
                 captureSource.setAudioSync(unsigned(options.settings.audioSync),options.settings.audioOffsetMs);

@@ -4,6 +4,7 @@
 #include "CaptionPresenter.h"
 #include "LiveAsr.h"
 #include "LiveSentences.h"
+#include "SpeechVoice.h"
 #include <QCache>
 #include <QElapsedTimer>
 #include <QQueue>
@@ -12,6 +13,7 @@
 #include <QStringList>
 #include <QTimer>
 #include <deque>
+#include <memory>
 #include <optional>
 
 namespace veyra::ui {
@@ -42,6 +44,12 @@ class LiveTranslation final : public QObject {
     Q_PROPERTY(QString sourceLanguage READ sourceLanguage WRITE setSourceLanguage NOTIFY changed)
     Q_PROPERTY(QString targetLanguage READ targetLanguage WRITE setTargetLanguage NOTIFY changed)
     Q_PROPERTY(bool showOriginal READ showOriginal WRITE setShowOriginal NOTIFY changed)
+    // Reads each translated line aloud with a Windows voice of the target language.
+    Q_PROPERTY(bool voiceEnabled READ voiceEnabled WRITE setVoiceEnabled NOTIFY changed)
+    Q_PROPERTY(int voiceVolume READ voiceVolume WRITE setVoiceVolume NOTIFY changed)
+    // Programme volume (percent) while the voice speaks.
+    Q_PROPERTY(int voiceDuck READ voiceDuck WRITE setVoiceDuck NOTIFY changed)
+    Q_PROPERTY(QString voiceName READ voiceName NOTIFY changed)
     Q_PROPERTY(QString apiBase READ apiBase WRITE setApiBase NOTIFY changed)
     Q_PROPERTY(QString apiModel READ apiModel WRITE setApiModel NOTIFY changed)
     Q_PROPERTY(QString status READ status NOTIFY changed)
@@ -87,6 +95,10 @@ public:
     QString sourceLanguage() const;
     QString targetLanguage() const { return targetLanguage_; }
     bool showOriginal() const { return showOriginal_; }
+    bool voiceEnabled() const { return voiceEnabled_; }
+    int voiceVolume() const { return voiceVolume_; }
+    int voiceDuck() const { return voiceDuck_; }
+    QString voiceName() const { return voiceName_; }
     QString apiBase() const { return apiBase_; }
     QString apiModel() const { return apiModel_; }
     QString status() const;
@@ -116,6 +128,9 @@ public:
     void setSourceLanguage(QString value);
     void setTargetLanguage(QString value);
     void setShowOriginal(bool value);
+    void setVoiceEnabled(bool value);
+    void setVoiceVolume(int value);
+    void setVoiceDuck(int value);
     void setApiBase(QString value);
     void setApiModel(QString value);
     Q_INVOKABLE void setApiKey(const QString& value);
@@ -130,6 +145,8 @@ signals:
     void changed();
     void captionChanged();
     void previewChanged();
+    // Gain factor (0..1) for the programme audio while the voice speaks.
+    void audioDuckChanged(double factor);
 private:
     struct Work {
         quint64 id = 0;
@@ -178,6 +195,10 @@ private:
     void advanceSpeech(qint64 now);
     void startLocal();
     void stopLocal();
+    void speakLine(const QString& line);
+    void setVoiceSpeaking(bool speaking);
+    void updateVoiceName();
+    void stepDuck();
     void requestTranslation(Work work);
     void receiveTranslation(QNetworkReply* reply, const Work& work);
     void summarize(qint64 now);
@@ -188,7 +209,12 @@ private:
     QSettings settings_;
     QNetworkAccessManager remoteNetwork_, localNetwork_;
     QProcess reader_, server_;
-    QTimer timer_;
+    QTimer timer_, duckTimer_;
+    std::unique_ptr<SpeechVoice> voice_;
+    bool voiceEnabled_ = false, voiceSpeaking_ = false;
+    int voiceVolume_ = 100, voiceDuck_ = 35;
+    double duck_ = 1.0;
+    QString voiceName_;
     QElapsedTimer clock_;
     QNetworkReply* request_ = nullptr;
     HANDLE serverJob_ = nullptr;

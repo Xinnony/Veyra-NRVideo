@@ -302,6 +302,9 @@ public:
     bool rotatePreviewClockwise(uint64_t session){std::lock_guard lock(mutex_);if(session!=snapshot_.sessionId||(!snapshot_.running&&!snapshot_.image))return false;previewView_.rotateClockwise();return true;}
     PreviewView previewView()const{std::lock_guard lock(mutex_);return previewView_;}
     void setVolume(float gain,bool mute);
+    // Temporary attenuation on top of the volume (live translation lowers the
+    // programme while its voice speaks). 1 = none. Not saved, not shown as volume.
+    void setAudioDuck(float factor){if(std::isfinite(factor))audioDuck_=std::clamp(factor,0.0f,1.0f);}
     // Local capture monitoring only. Recording takes PCM before this gain.
     void setCaptureAudioMonitoring(bool enabled);
     bool selectAudioTrack(uint64_t sessionId,int streamIndex);
@@ -391,7 +394,7 @@ private:
     std::atomic<bool> stop_{false},paused_{false},muted_{false};
     std::atomic<bool> captureAudioMonitoring_{true};
     std::shared_ptr<sink::HdmiBitstreamOutput> hdmiBitstream_;
-    std::atomic<float> volume_{1};uint64_t sessionId_=0;
+    std::atomic<float> volume_{1},audioDuck_{1};uint64_t sessionId_=0;
     std::atomic<double> seekSeconds_{-1};
     std::atomic<double> requestedPlaybackRate_{1};
     std::atomic<bool> fullscreenMemoryProtection_{false};

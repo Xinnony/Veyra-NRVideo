@@ -201,6 +201,18 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
     recognitionModel_ = std::clamp(settings_.value(QStringLiteral("recognitionModel"), int(asr::Parakeet)).toInt(),
         0, asr::modelCount - 1);
     recognitionThreads_ = std::clamp(settings_.value(QStringLiteral("recognitionThreads"), 0).toInt(), 0, 8);
+    voiceEnabled_ = settings_.value(QStringLiteral("voice"), false).toBool();
+    voiceVolume_ = std::clamp(settings_.value(QStringLiteral("voiceVolume"), 100).toInt(), 0, 100);
+    voiceDuck_ = std::clamp(settings_.value(QStringLiteral("voiceDuck"), 35).toInt(), 0, 100);
+    // The worker reports from its own thread; hop to this one before touching state.
+    voice_ = std::make_unique<SpeechVoice>([this](bool speaking) {
+        QMetaObject::invokeMethod(this, [this, speaking] { setVoiceSpeaking(speaking); }, Qt::QueuedConnection);
+    });
+    voice_->setLanguage(targetLanguage_.toStdWString());
+    voice_->setVolume(float(voiceVolume_) / 100.0f);
+    updateVoiceName();
+    duckTimer_.setInterval(20);
+    connect(&duckTimer_, &QTimer::timeout, this, &LiveTranslation::stepDuck);
     configureAsr();
 
     localNetwork_.setProxy(QNetworkProxy::NoProxy);
@@ -277,6 +289,8 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
 }
 
 LiveTranslation::~LiveTranslation() {
+    // Joins the voice thread while this object is still whole.
+    voice_.reset();
     reader_.disconnect(this);
     server_.disconnect(this);
     asr_.disconnect(this);
@@ -532,6 +546,8 @@ void LiveTranslation::setTargetLanguage(QString value) {
     if (!languageCode(value) || targetLanguage_ == value) return;
     targetLanguage_ = std::move(value);
     settings_.setValue(QStringLiteral("target"), targetLanguage_);
+    voice_->setLanguage(targetLanguage_.toStdWString());
+    updateVoiceName();
     resetCaption();
     emit changed();
 }
@@ -542,6 +558,59 @@ void LiveTranslation::setShowOriginal(bool value) {
     settings_.setValue(QStringLiteral("original"), value);
     emit changed();
     emit captionChanged();
+}
+
+void LiveTranslation::setVoiceEnabled(bool value) {
+    if (voiceEnabled_ == value) return;
+    voiceEnabled_ = value;
+    settings_.setValue(QStringLiteral("voice"), value);
+    if (!value) voice_->cancel();
+    updateVoiceName();
+    stepDuck();
+    emit changed();
+}
+
+void LiveTranslation::setVoiceVolume(int value) {
+    value = std::clamp(value, 0, 100);
+    if (voiceVolume_ == value) return;
+    voiceVolume_ = value;
+    settings_.setValue(QStringLiteral("voiceVolume"), value);
+    voice_->setVolume(float(value) / 100.0f);
+    emit changed();
+}
+
+void LiveTranslation::setVoiceDuck(int value) {
+    value = std::clamp(value, 0, 100);
+    if (voiceDuck_ == value) return;
+    voiceDuck_ = value;
+    settings_.setValue(QStringLiteral("voiceDuck"), value);
+    stepDuck();
+    emit changed();
+}
+
+void LiveTranslation::updateVoiceName() {
+    voiceName_ = QString::fromStdWString(SpeechVoice::voiceNameFor(targetLanguage_.toStdWString()));
+}
+
+void LiveTranslation::speakLine(const QString& line) {
+    if (!voiceEnabled_ || !enabled_ || line.trimmed().isEmpty()) return;
+    voice_->speak(line.trimmed().toStdWString());
+}
+
+void LiveTranslation::setVoiceSpeaking(bool speaking) {
+    voiceSpeaking_ = speaking;
+    stepDuck();
+}
+
+// Lowers the programme quickly when the voice starts (~150 ms) and brings it
+// back more gently (~350 ms), in small steps so the gain change does not click.
+void LiveTranslation::stepDuck() {
+    const double target = voiceEnabled_ && enabled_ && voiceSpeaking_ ? voiceDuck_ / 100.0 : 1.0;
+    if (duck_ == target) { duckTimer_.stop(); return; }
+    duck_ = duck_ > target ? std::max(target, duck_ - 0.09) : std::min(target, duck_ + 0.04);
+    emit audioDuckChanged(duck_);
+    if (duck_ == target) duckTimer_.stop();
+    else if (!duckTimer_.isActive()) duckTimer_.start();
 }
 
 void LiveTranslation::setApiBase(QString value) {
@@ -816,6 +885,7 @@ void LiveTranslation::advanceSpeech(qint64 now) {
                 log::info("live-translate", std::format("test-id={} delayMs={} text={}", row.work.id, delayMs,
                     row.translated.toStdString()));
             setStatus(tr("实时翻译运行中"));
+            speakLine(row.translated);
         }
         speechShown_ = std::move(row);
         emit captionChanged();
@@ -831,6 +901,7 @@ void LiveTranslation::displayTranslation(const Work& work, QString translation) 
     const auto now = clock_.elapsed();
     if (work.screenStart >= 0) {
         const auto readMs = std::clamp<qint64>(1000 + 40 * std::max(work.sentence.text.size(), translation.size()), 1200, 3500);
+        speakLine(translation);
         screenPresenter_.ready(work.id, work.screenStart, {work.sentence.text, std::move(translation)}, now, readMs);
         stepScreenPresenter();
         return;
@@ -850,6 +921,7 @@ void LiveTranslation::displayTranslation(const Work& work, QString translation) 
     if (qEnvironmentVariableIntValue("VEYRA_TEST_LIVE_TEXT_LOG") == 1)
         log::info("live-translate", std::format("test-id={} delayMs={} text={}", work.id, delayMs, row->translated.toStdString()));
     setStatus(tr("实时翻译运行中"));
+    if (first) speakLine(row->translated);
     emit captionChanged();
 }
 
@@ -880,6 +952,9 @@ void LiveTranslation::discardHiddenWork() {
 }
 
 void LiveTranslation::resetCaption() {
+    // Seek, source change or language change: what was queued no longer matches the picture.
+    if (voice_) voice_->cancel();
+    stepDuck();
     cancelRequest();
     sentences_.reset(raw_);
     queue_.clear();

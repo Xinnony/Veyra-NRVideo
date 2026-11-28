@@ -61,6 +61,9 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
                                 QObject* parent)
     : QObject(parent), impl_(std::make_unique<Impl>(engine, std::move(dataDirectory))) {
     liveTranslation_ = new LiveTranslation(QString::fromStdWString(impl_->dataDir.wstring()), this);
+    // The translated voice lowers the programme while it speaks; the volume itself is untouched.
+    connect(liveTranslation_, &LiveTranslation::audioDuckChanged, this,
+            [this](double factor) { impl_->engine.setAudioDuck(float(factor)); });
     connect(this,&QmlPlayerBridge::mediaOpenRequested,this,[this]{
         liveTranslation_->setPlayback(impl_->snapshot.sessionId, false, true);
         endExclusionMove(false);impl_->exclusionSelected=-1;beginProtectionDraw(QString{});

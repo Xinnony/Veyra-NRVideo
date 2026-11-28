@@ -255,6 +255,44 @@ DialogLayer {
                 onToggled: value => { root.translation.showOriginal = value }
             }
         }
+        VRow {
+            visible: root.supported
+            objectName: "live-translation-voice"
+            label: qsTr("朗读译文")
+            hintBelow: true
+            hint: !root.translation ? ""
+                : root.translation.voiceName.length > 0
+                    ? qsTr("Windows 语音：%1").arg(root.translation.voiceName)
+                    : qsTr("Windows 没有此语言的语音。请在 设置 > 时间和语言 > 语音 中添加。")
+            VSwitch {
+                checked: root.translation ? root.translation.voiceEnabled : false
+                onToggled: value => { root.translation.voiceEnabled = value }
+            }
+        }
+        VRow {
+            visible: root.supported && root.translation && root.translation.voiceEnabled
+            label: qsTr("语音音量")
+            VSlider {
+                implicitWidth: 170
+                from: 0; to: 100
+                valueFromModel: true
+                value: root.translation ? root.translation.voiceVolume : 100
+                onMoved: value => { root.translation.voiceVolume = Math.round(value) }
+            }
+        }
+        VRow {
+            visible: root.supported && root.translation && root.translation.voiceEnabled
+            label: qsTr("朗读时的节目音量")
+            hintBelow: true
+            hint: qsTr("朗读期间降低游戏或视频的声音，结束后恢复。")
+            VSlider {
+                implicitWidth: 170
+                from: 0; to: 100
+                valueFromModel: true
+                value: root.translation ? root.translation.voiceDuck : 35
+                onMoved: value => { root.translation.voiceDuck = Math.round(value) }
+            }
+        }
     }
 
     DialogGroup {

@@ -43226,6 +43226,84 @@
    "de": "Hoch standardmäßig. Wenn ein Spiel oder ein anderes schweres Programm, das nebenbei läuft, langsamer wird, wählen Sie Normal",
    "pt-BR": "; Alta por padrão. Se um jogo ou outro programa pesado em execução ao lado desacelera, escolha Normal",
    "ru": "; высокий по умолчанию. Если игра или другая тяжелая программа, работающая рядом, замедляется, выберите Normal."
+  },
+  {
+   "zh": "朗读译文",
+   "src": "qml/LiveTranslationDialog.qml",
+   "zh-TW": "朗讀譯文",
+   "en": "Read translation aloud",
+   "ja": "翻訳を読み上げる",
+   "ko": "번역 읽어 주기",
+   "es": "Leer la traducción en voz alta",
+   "fr": "Lire la traduction à voix haute",
+   "de": "Übersetzung vorlesen",
+   "pt-BR": "Ler a tradução em voz alta",
+   "ru": "Озвучивать перевод"
+  },
+  {
+   "zh": "Windows 语音：%1",
+   "src": "qml/LiveTranslationDialog.qml",
+   "zh-TW": "Windows 語音：%1",
+   "en": "Windows voice: %1",
+   "ja": "Windows の音声：%1",
+   "ko": "Windows 음성: %1",
+   "es": "Voz de Windows: %1",
+   "fr": "Voix Windows : %1",
+   "de": "Windows-Stimme: %1",
+   "pt-BR": "Voz do Windows: %1",
+   "ru": "Голос Windows: %1"
+  },
+  {
+   "zh": "Windows 没有此语言的语音。请在 设置 > 时间和语言 > 语音 中添加。",
+   "src": "qml/LiveTranslationDialog.qml",
+   "zh-TW": "Windows 沒有此語言的語音。請在 設定 > 時間與語言 > 語音 中新增。",
+   "en": "Windows has no voice for this language. Add one in Settings > Time & language > Speech.",
+   "ja": "この言語の Windows 音声がありません。設定 > 時刻と言語 > 音声認識 で追加してください。",
+   "ko": "이 언어의 Windows 음성이 없습니다. 설정 > 시간 및 언어 > 음성에서 추가하세요.",
+   "es": "Windows no tiene una voz para este idioma. Añádela en Configuración > Hora e idioma > Voz.",
+   "fr": "Windows n’a pas de voix pour cette langue. Ajoutez-en une dans Paramètres > Heure et langue > Voix.",
+   "de": "Windows hat keine Stimme für diese Sprache. Fügen Sie eine unter Einstellungen > Zeit und Sprache > Sprachausgabe hinzu.",
+   "pt-BR": "O Windows não tem voz para este idioma. Adicione uma em Configurações > Hora e idioma > Fala.",
+   "ru": "В Windows нет голоса для этого языка. Добавьте его в разделе Параметры > Время и язык > Речь."
+  },
+  {
+   "zh": "语音音量",
+   "src": "qml/LiveTranslationDialog.qml",
+   "zh-TW": "語音音量",
+   "en": "Voice volume",
+   "ja": "音声の音量",
+   "ko": "음성 볼륨",
+   "es": "Volumen de la voz",
+   "fr": "Volume de la voix",
+   "de": "Lautstärke der Stimme",
+   "pt-BR": "Volume da voz",
+   "ru": "Громкость голоса"
+  },
+  {
+   "zh": "朗读时的节目音量",
+   "src": "qml/LiveTranslationDialog.qml",
+   "zh-TW": "朗讀時的節目音量",
+   "en": "Programme volume while speaking",
+   "ja": "読み上げ中の番組音量",
+   "ko": "읽는 동안 프로그램 볼륨",
+   "es": "Volumen del programa durante la voz",
+   "fr": "Volume du jeu pendant la voix",
+   "de": "Programmlautstärke während der Stimme",
+   "pt-BR": "Volume do programa durante a voz",
+   "ru": "Громкость программы во время озвучки"
+  },
+  {
+   "zh": "朗读期间降低游戏或视频的声音，结束后恢复。",
+   "src": "qml/LiveTranslationDialog.qml",
+   "zh-TW": "朗讀期間降低遊戲或影片的聲音，結束後恢復。",
+   "en": "Lowers the game or video sound while the voice speaks, then restores it.",
+   "ja": "読み上げ中はゲームや動画の音を下げ、終わると元に戻します。",
+   "ko": "음성이 읽는 동안 게임이나 동영상 소리를 낮추고 끝나면 복원합니다.",
+   "es": "Baja el sonido del juego o del vídeo mientras habla la voz y luego lo restaura.",
+   "fr": "Baisse le son du jeu ou de la vidéo pendant que la voix parle, puis le rétablit.",
+   "de": "Senkt den Ton von Spiel oder Video, während die Stimme spricht, und stellt ihn danach wieder her.",
+   "pt-BR": "Abaixa o som do jogo ou do vídeo enquanto a voz fala e depois o restaura.",
+   "ru": "Приглушает звук игры или видео, пока говорит голос, затем восстанавливает его."
   }
  ]
 }
