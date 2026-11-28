@@ -14,6 +14,10 @@ inline constexpr int modelCount = 2;
 enum Model { Parakeet, Whisper };
 QString root(const QString& dataDirectory);
 std::span<const ModelAsset> assets(int model);
+// [0] sherpa-onnx 1.x runtime, [1] Piper French voice, for reading translations
+// aloud (same root folder as ASR, separate runtime).
+std::span<const ModelAsset> piperAssets();
+const char* piperRuntimeVersion();
 bool verify(const QString& root, int model, bool contents);
 QString whisperLanguage(const QString& language);
 

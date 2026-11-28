@@ -106,6 +106,36 @@ The ASR child verifies the files before loading the runtime or parsing the
 models. All speech recognition DLLs and weights are installed through the
 user data directory downloader.
 
+### Reading translations aloud (2026-11-28)
+
+Translated lines can be spoken. The default voice is the Windows one
+(Windows.Media.SpeechSynthesis, the OneCore voices of the installed Windows
+languages); nothing is bundled or downloaded for it. The optional natural
+French voice runs on the CPU in a separate process (`--tts-worker`) and is
+downloaded on demand into the user's data directory, verified per file:
+
+- [sherpa-onnx v1.13.8](https://github.com/k2-fsa/sherpa-onnx/releases/tag/v1.13.8)
+  at 11afbd009a7f8c08f4bcf2fc1b265d0df4670fbf, Apache-2.0. sherpa-onnx 2.x no
+  longer includes the espeak-ng front end Piper voices need, so this separate
+  pinned runtime (Windows x64 shared MD MinSizeRel, with TTS) is used only by
+  the voice process. Its public sherpa-onnx/c-api/c-api.h header is copied
+  unmodified to [third_party/sherpa-onnx-1.13](third_party/sherpa-onnx-1.13)
+  with its license. The ONNX Runtime DLLs are byte-identical to the ASR ones.
+  The DLL links [espeak-ng](https://github.com/espeak-ng/espeak-ng) and
+  piper-phonemize, GPL-3.0-or-later and MIT; the French espeak-ng data files
+  (phontab, phondata, phonindex, intonations, fr_dict, lang/roa/fr) come from
+  the voice package below.
+- [Piper](https://github.com/rhasspy/piper) voice fr_FR "siwis" (medium), MIT
+  code, trained on the [SIWIS French Speech Synthesis Database](https://datashare.is.ed.ac.uk/handle/10283/2353),
+  CC BY 4.0. The int8 sherpa-onnx package
+  `vits-piper-fr_FR-siwis-medium-int8` from the sherpa-onnx `tts-models`
+  release supplies the model, tokens and model card (kept on disk).
+
+src/ui/AsrModels.cpp pins both archives (SHA-256) and every extracted file; a
+same-digest GH-Proxy route is the fallback. The voice process verifies the
+files before loading the runtime. Its audio plays on a separate stream to the
+default output, never through the player's renderer or recordings.
+
 ### On-screen text source: VI Translator capture reading (2026-11-20)
 
 Live translation can read the subtitles drawn on the picture (capture card, PS5

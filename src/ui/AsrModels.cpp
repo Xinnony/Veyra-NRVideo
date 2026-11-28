@@ -66,7 +66,52 @@ constexpr ModelAsset whisper[]{
      563790207, "b11acbbcd660b44a8e0df33724feb5aaa709cf65668f2823d59f656312544f22",
      whisperFiles, "sherpa-onnx-whisper-turbo/", 1, false, whisperSources}
 };
+// sherpa-onnx 2.x dropped the espeak-ng text front end that Piper voices need,
+// so the voice worker keeps the last 1.x runtime in its own folder (its own
+// process too: --tts-worker). Recognition stays on runtimeVersion.
+inline constexpr auto ttsRuntimeVersion = "1.13.8";
+constexpr ModelFile ttsRuntimeFiles[]{
+    {"sherpa-onnx-c-api.dll", "2557f6b3828176556d68f418de1448ff9f8a336dc5d01929ee6fa06c38380d67", 3586560},
+    {"onnxruntime.dll", "9ab1e925c610b42410b1ebacc61306436282522221bf3b3c6ea5950d000d44be", 14203904},
+    {"onnxruntime_providers_shared.dll", "3ef52275f70976fd0ac83f6a4e516cad045622851d5d4ce692f0926333cc8062", 10752},
+};
+constexpr ModelSource ttsRuntimeSources[]{
+    {"https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-v1.13.8-win-x64-shared-MD-MinSizeRel-lib.tar.bz2"},
+};
+constexpr ModelAsset ttsRuntime{
+    "tts-runtime-1.13.8",
+    "https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-v1.13.8-win-x64-shared-MD-MinSizeRel-lib.tar.bz2",
+    6175461, "3d3afa1da26239d51e9efcd4831537897d8a6a50cefa980461bfa93e24b2b0a3",
+    ttsRuntimeFiles, "sherpa-onnx-v1.13.8-win-x64-shared-MD-MinSizeRel-lib/lib/", 2, true, ttsRuntimeSources
+};
+// Piper "siwis" French voice (int8), packaged for sherpa-onnx. Only the files
+// French needs are extracted: the model, its tokens, the model card (dataset
+// licence) and the espeak-ng phoneme data for fr.
+constexpr ModelFile piperFiles[]{
+    {"fr_FR-siwis-medium.onnx", "ac51a90dca3b6e8e601524ba7d5a6f9827449ad2a81802b64bee6d834d3af83b", 18579718},
+    {"tokens.txt", "87c8ef66eae5473ed0cc0366b3964c736ca6c5f676c979522ea31234e47430b9", 921},
+    {"MODEL_CARD", "bd8b8d079d4d3d2c4cc20345889bbcd586d72f021a132f93357a763eb5232cce", 284},
+    {"espeak-ng-data/phontab", "886f3fa402cb0ba73d483aa8ad000af47a6b7cc06293c75a97913fba68a530f6", 55796},
+    {"espeak-ng-data/phondata", "4e0288957874029a8c3c9f41a8f517ad4bf18127046decbdd4b9d1d6807ce3a3", 550424},
+    {"espeak-ng-data/phonindex", "3ca7b8fa3b42624e4b0f152707e7a39245fce569aa99ea47c055d9e622fcf0c4", 39074},
+    {"espeak-ng-data/intonations", "3f8af65fd3eda9759a10f021d61361c120871f463515229c925995c7f90918cc", 2040},
+    {"espeak-ng-data/fr_dict", "e399ab924c4d10beef1fc310b30ea56e4ddfd8b4b64b8ed978e9c65394d49b2d", 63727},
+    {"espeak-ng-data/lang/roa/fr", "95f44834b48c075dad13eace54d2c98ff79b81aa0074dd67eebaf66c2909eef8", 79},
+};
+constexpr ModelSource piperSources[]{
+    {"https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-fr_FR-siwis-medium-int8.tar.bz2"},
+};
+constexpr ModelAsset piper[]{
+    ttsRuntime,
+    {"voices/piper-fr_FR-siwis-medium-int8",
+     "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-fr_FR-siwis-medium-int8.tar.bz2",
+     20914888, "3909cff9b3cfd4820c66aa13bf554315c82e34899c161f0b446ece372bc4b5ec",
+     piperFiles, "vits-piper-fr_FR-siwis-medium-int8/", 1, false, piperSources, true}
+};
 }
+
+std::span<const ModelAsset> piperAssets() { return piper; }
+const char* piperRuntimeVersion() { return ttsRuntimeVersion; }
 
 QString root(const QString& dataDirectory) {
     return QDir(dataDirectory).absoluteFilePath(QStringLiteral("live-asr"));

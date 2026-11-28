@@ -4,6 +4,7 @@
 #include "CaptionPresenter.h"
 #include "LiveAsr.h"
 #include "LiveSentences.h"
+#include "PiperVoice.h"
 #include "SpeechVoice.h"
 #include <QCache>
 #include <QElapsedTimer>
@@ -50,6 +51,13 @@ class LiveTranslation final : public QObject {
     // Programme volume (percent) while the voice speaks.
     Q_PROPERTY(int voiceDuck READ voiceDuck WRITE setVoiceDuck NOTIFY changed)
     Q_PROPERTY(QString voiceName READ voiceName NOTIFY changed)
+    // 0 = Windows voice, 1 = Piper (natural, French only, downloaded on demand).
+    Q_PROPERTY(int voiceEngine READ voiceEngine WRITE setVoiceEngine NOTIFY changed)
+    Q_PROPERTY(bool piperInstalled READ piperInstalled NOTIFY changed)
+    Q_PROPERTY(bool piperDownloading READ piperDownloading NOTIFY changed)
+    Q_PROPERTY(double piperProgress READ piperProgress NOTIFY changed)
+    Q_PROPERTY(qint64 piperBytes READ piperBytes NOTIFY changed)
+    Q_PROPERTY(QString piperStatus READ piperStatus NOTIFY changed)
     Q_PROPERTY(QString apiBase READ apiBase WRITE setApiBase NOTIFY changed)
     Q_PROPERTY(QString apiModel READ apiModel WRITE setApiModel NOTIFY changed)
     Q_PROPERTY(QString status READ status NOTIFY changed)
@@ -99,6 +107,13 @@ public:
     int voiceVolume() const { return voiceVolume_; }
     int voiceDuck() const { return voiceDuck_; }
     QString voiceName() const { return voiceName_; }
+    enum VoiceEngine { WindowsVoice, PiperVoiceEngine };
+    int voiceEngine() const { return voiceEngine_; }
+    bool piperInstalled() const { return piper_.installed(); }
+    bool piperDownloading() const { return piper_.downloading(); }
+    double piperProgress() const { return piper_.progress(); }
+    qint64 piperBytes() const { return piper_.downloadBytes(); }
+    QString piperStatus() const { return piper_.status(); }
     QString apiBase() const { return apiBase_; }
     QString apiModel() const { return apiModel_; }
     QString status() const;
@@ -131,6 +146,9 @@ public:
     void setVoiceEnabled(bool value);
     void setVoiceVolume(int value);
     void setVoiceDuck(int value);
+    void setVoiceEngine(int value);
+    Q_INVOKABLE void downloadPiper() { piper_.download(); }
+    Q_INVOKABLE void cancelPiperDownload() { piper_.cancelDownload(); }
     void setApiBase(QString value);
     void setApiModel(QString value);
     Q_INVOKABLE void setApiKey(const QString& value);
@@ -198,6 +216,8 @@ private:
     void speakLine(const QString& line);
     void setVoiceSpeaking(bool speaking);
     void updateVoiceName();
+    bool usePiper() const;
+    void updateVoiceEngine();
     void stepDuck();
     void requestTranslation(Work work);
     void receiveTranslation(QNetworkReply* reply, const Work& work);
@@ -211,6 +231,8 @@ private:
     QProcess reader_, server_;
     QTimer timer_, duckTimer_;
     std::unique_ptr<SpeechVoice> voice_;
+    PiperVoice piper_;
+    int voiceEngine_ = WindowsVoice;
     bool voiceEnabled_ = false, voiceSpeaking_ = false;
     int voiceVolume_ = 100, voiceDuck_ = 35;
     double duck_ = 1.0;

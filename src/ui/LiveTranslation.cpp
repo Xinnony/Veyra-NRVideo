@@ -175,7 +175,8 @@ QRectF boundedRegion(QRectF r) {
 
 LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
     : QObject(parent), assets_(directory), asr_(directory),
-      settings_(QDir(directory).filePath(QStringLiteral("live-translation.ini")), QSettings::IniFormat) {
+      settings_(QDir(directory).filePath(QStringLiteral("live-translation.ini")), QSettings::IniFormat),
+      piper_(directory) {
     provider_ = std::clamp(settings_.value(QStringLiteral("provider"), int(Local)).toInt(), int(Local), int(MyMemory));
     sourceLanguage_ = settings_.value(QStringLiteral("source")).toString();
     targetLanguage_ = settings_.value(QStringLiteral("target"), QLocale().bcp47Name()).toString();
@@ -204,12 +205,20 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
     voiceEnabled_ = settings_.value(QStringLiteral("voice"), false).toBool();
     voiceVolume_ = std::clamp(settings_.value(QStringLiteral("voiceVolume"), 100).toInt(), 0, 100);
     voiceDuck_ = std::clamp(settings_.value(QStringLiteral("voiceDuck"), 35).toInt(), 0, 100);
-    // The worker reports from its own thread; hop to this one before touching state.
-    voice_ = std::make_unique<SpeechVoice>([this](bool speaking) {
+    voiceEngine_ = std::clamp(settings_.value(QStringLiteral("voiceEngine"), int(WindowsVoice)).toInt(),
+                              int(WindowsVoice), int(PiperVoiceEngine));
+    // The voice thread reports from its own thread; hop to this one before touching state.
+    voice_ = std::make_unique<SpeechVoice>(&makeWindowsSynth, [this](bool speaking) {
         QMetaObject::invokeMethod(this, [this, speaking] { setVoiceSpeaking(speaking); }, Qt::QueuedConnection);
     });
     voice_->setLanguage(targetLanguage_.toStdWString());
     voice_->setVolume(float(voiceVolume_) / 100.0f);
+    piper_.setVolume(float(voiceVolume_) / 100.0f);
+    connect(&piper_, &PiperVoice::speakingChanged, this, &LiveTranslation::setVoiceSpeaking);
+    connect(&piper_, &PiperVoice::changed, this, [this] {
+        updateVoiceEngine();
+        emit changed();
+    });
     updateVoiceName();
     duckTimer_.setInterval(20);
     connect(&duckTimer_, &QTimer::timeout, this, &LiveTranslation::stepDuck);
@@ -291,6 +300,7 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
 LiveTranslation::~LiveTranslation() {
     // Joins the voice thread while this object is still whole.
     voice_.reset();
+    piper_.disconnect(this);
     reader_.disconnect(this);
     server_.disconnect(this);
     asr_.disconnect(this);
@@ -417,6 +427,10 @@ void LiveTranslation::setEnabled(bool value) {
         configureAsr();
     }
     asr_.setEnabled(value && recognitionSource_ == VeyraAudio);
+    updateVoiceEngine();
+    log::info("live-translate", std::format("enabled={} source={} provider={} model={} voice={} engine={} piper={} target={}",
+        value, recognitionSource_, provider_, recognitionModel_, voiceEnabled_, voiceEngine_,
+        usePiper() ? "active" : piper_.installed() ? "idle" : "missing", targetLanguage_.toStdString()));
     if (value) {
         lastSummaryAt_ = clock_.elapsed();
         status_ = recognitionSource_ == WindowsCaptions ? tr("请打开 Windows 实时字幕")
@@ -547,7 +561,7 @@ void LiveTranslation::setTargetLanguage(QString value) {
     targetLanguage_ = std::move(value);
     settings_.setValue(QStringLiteral("target"), targetLanguage_);
     voice_->setLanguage(targetLanguage_.toStdWString());
-    updateVoiceName();
+    updateVoiceEngine();
     resetCaption();
     emit changed();
 }
@@ -565,7 +579,7 @@ void LiveTranslation::setVoiceEnabled(bool value) {
     voiceEnabled_ = value;
     settings_.setValue(QStringLiteral("voice"), value);
     if (!value) voice_->cancel();
-    updateVoiceName();
+    updateVoiceEngine();
     stepDuck();
     emit changed();
 }
@@ -576,6 +590,7 @@ void LiveTranslation::setVoiceVolume(int value) {
     voiceVolume_ = value;
     settings_.setValue(QStringLiteral("voiceVolume"), value);
     voice_->setVolume(float(value) / 100.0f);
+    piper_.setVolume(float(value) / 100.0f);
     emit changed();
 }
 
@@ -588,13 +603,38 @@ void LiveTranslation::setVoiceDuck(int value) {
     emit changed();
 }
 
+void LiveTranslation::setVoiceEngine(int value) {
+    value = std::clamp(value, int(WindowsVoice), int(PiperVoiceEngine));
+    if (voiceEngine_ == value) return;
+    voiceEngine_ = value;
+    settings_.setValue(QStringLiteral("voiceEngine"), value);
+    voice_->cancel();
+    piper_.cancel();
+    updateVoiceEngine();
+    emit changed();
+}
+
+// Piper only has a French voice; for another target language, or until it is
+// downloaded, the Windows voice keeps reading.
+bool LiveTranslation::usePiper() const {
+    return voiceEngine_ == PiperVoiceEngine && piper_.installed() &&
+        targetLanguage_.section(QLatin1Char('-'), 0, 0).compare(QLatin1String("fr"), Qt::CaseInsensitive) == 0;
+}
+
+void LiveTranslation::updateVoiceEngine() {
+    piper_.setActive(voiceEnabled_ && enabled_ && usePiper());
+    updateVoiceName();
+}
+
 void LiveTranslation::updateVoiceName() {
-    voiceName_ = QString::fromStdWString(SpeechVoice::voiceNameFor(targetLanguage_.toStdWString()));
+    voiceName_ = usePiper() ? QStringLiteral("Piper · SIWIS (fr_FR)")
+                            : QString::fromStdWString(SpeechVoice::windowsVoiceNameFor(targetLanguage_.toStdWString()));
 }
 
 void LiveTranslation::speakLine(const QString& line) {
     if (!voiceEnabled_ || !enabled_ || line.trimmed().isEmpty()) return;
-    voice_->speak(line.trimmed().toStdWString());
+    if (usePiper()) piper_.speak(line.trimmed());
+    else voice_->speak(line.trimmed().toStdWString());
 }
 
 void LiveTranslation::setVoiceSpeaking(bool speaking) {
@@ -954,6 +994,7 @@ void LiveTranslation::discardHiddenWork() {
 void LiveTranslation::resetCaption() {
     // Seek, source change or language change: what was queued no longer matches the picture.
     if (voice_) voice_->cancel();
+    piper_.cancel();
     stepDuck();
     cancelRequest();
     sentences_.reset(raw_);

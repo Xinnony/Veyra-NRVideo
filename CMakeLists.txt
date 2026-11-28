@@ -1416,6 +1416,8 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
     src/ui/LiveSentences.cpp src/ui/LiveSentences.h
     src/ui/LiveAsr.cpp src/ui/LiveAsr.h
     src/ui/SpeechVoice.cpp src/ui/SpeechVoice.h
+    src/ui/PiperVoice.cpp src/ui/PiperVoice.h
+    src/ui/TtsWorker.cpp src/ui/TtsWorker.h
     src/ui/AsrAudioTap.cpp src/ui/AsrAudioTap.h
     src/ui/AsrModels.cpp src/ui/AsrModels.h
     src/ui/AsrWorker.cpp src/ui/AsrWorker.h

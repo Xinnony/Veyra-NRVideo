@@ -139,6 +139,7 @@ void LiveAsr::start() {
     inFlightBytes_ = 0;
     startedAt_ = clock_.elapsed();
     process_.start(QCoreApplication::applicationFilePath(), {QStringLiteral("--asr-worker")});
+    log::info("live-asr", std::format("starting worker model={} threads={}", model_, threads_));
     setStatus(tr("正在加载本地语音识别模型…"));
 }
 

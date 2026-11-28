@@ -45,6 +45,10 @@ DialogLayer {
         {id: "0", label: qsTr("自动")}, {id: "1", label: "1"}, {id: "2", label: "2"}, {id: "3", label: "3"},
         {id: "4", label: "4"}, {id: "5", label: "5"}, {id: "6", label: "6"}, {id: "7", label: "7"}, {id: "8", label: "8"}
     ]
+    readonly property var voiceEngines: [
+        {id: "0", label: qsTr("Windows 语音")},
+        {id: "1", label: qsTr("Piper（更自然）")}
+    ]
     readonly property var subtitleLineOptions: [{id: "1", label: "1"}, {id: "2", label: "2"}, {id: "3", label: "3"}]
     readonly property int subtitleSize: veyra.preferences.liveSubtitleSize || veyra.preferences.subtitleSize || 22
     readonly property color subtitleColor: veyra.preferences.liveSubtitleColor || "#ffffff"
@@ -268,6 +272,44 @@ DialogLayer {
                 checked: root.translation ? root.translation.voiceEnabled : false
                 onToggled: value => { root.translation.voiceEnabled = value }
             }
+        }
+        VRow {
+            visible: root.supported && root.translation && root.translation.voiceEnabled
+            objectName: "live-translation-voice-engine"
+            label: qsTr("语音引擎")
+            hintBelow: true
+            hint: root.translation && root.translation.voiceEngine === 1
+                && !root.translation.targetLanguage.toLowerCase().startsWith("fr")
+                ? qsTr("Piper 目前只有法语语音，其他语言使用 Windows 语音。") : ""
+            VSelect {
+                implicitWidth: 224
+                options: root.voiceEngines
+                value: root.translation ? root.voiceEngines[root.translation.voiceEngine].label : ""
+                onPicked: id => { root.translation.voiceEngine = Number(id) }
+            }
+        }
+        VRow {
+            visible: root.supported && root.translation && root.translation.voiceEnabled
+                && root.translation.voiceEngine === 1
+            label: root.translation && root.translation.piperInstalled ? qsTr("Piper 语音已就绪") : qsTr("Piper 语音按需下载")
+            hintBelow: true
+            hint: (root.translation && root.translation.piperStatus.length > 0 ? root.translation.piperStatus + " · " : "")
+                + qsTr("Piper · SIWIS 法语 · 数据 CC BY 4.0 · 本机运行")
+                + qsTr(" · 首次下载 %1 MB").arg(root.translation ? Math.ceil(root.translation.piperBytes / 1000000) : 0)
+            VButton {
+                objectName: "live-translation-piper-download"
+                text: root.translation && root.translation.piperDownloading ? qsTr("取消下载") : qsTr("下载模型")
+                enabled: root.translation && (!root.translation.piperInstalled || root.translation.piperDownloading)
+                onClicked: {
+                    if (root.translation.piperDownloading) root.translation.cancelPiperDownload()
+                    else root.translation.downloadPiper()
+                }
+            }
+        }
+        ProgressBar {
+            Layout.fillWidth: true
+            visible: root.translation !== null && root.translation.voiceEnabled && root.translation.piperDownloading
+            value: root.translation ? root.translation.piperProgress : 0
         }
         VRow {
             visible: root.supported && root.translation && root.translation.voiceEnabled

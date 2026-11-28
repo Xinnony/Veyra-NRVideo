@@ -22,9 +22,7 @@
 #include <deque>
 #include <format>
 #include <mutex>
-#include <optional>
 #include <thread>
-#include <vector>
 
 namespace veyra::ui {
 namespace {
@@ -57,18 +55,11 @@ std::optional<VoiceInformation> findVoice(const std::wstring& language) {
     return sameLanguage;
 }
 
-std::string narrow(const std::wstring& s) { return winrt::to_string(s); }
-
-struct Wav {
-    std::vector<uint8_t> format; // WAVEFORMATEX (+ extension)
-    std::vector<uint8_t> pcm;
-};
-
 // SynthesizeTextToStreamAsync returns a RIFF/WAVE file; keep fmt and data.
-std::optional<Wav> parseWav(const std::vector<uint8_t>& file) {
+std::optional<SpeechAudio> parseWav(const std::vector<uint8_t>& file) {
     if (file.size() < 12 || std::memcmp(file.data(), "RIFF", 4) || std::memcmp(file.data() + 8, "WAVE", 4))
         return std::nullopt;
-    Wav wav;
+    SpeechAudio wav;
     for (size_t at = 12; at + 8 <= file.size();) {
         uint32_t size = 0;
         std::memcpy(&size, file.data() + at + 4, 4);
@@ -82,7 +73,33 @@ std::optional<Wav> parseWav(const std::vector<uint8_t>& file) {
     if (wav.format.size() < sizeof(WAVEFORMATEX)) wav.format.resize(sizeof(WAVEFORMATEX), 0);
     return wav;
 }
+
+class WindowsSynth final : public SpeechSynth {
+public:
+    bool setLanguage(const std::wstring& language) override {
+        const auto voice = findVoice(language);
+        if (!voice) return false;
+        synth_.Voice(*voice);
+        log::info("live-voice", std::format("windows voice={} language={}", winrt::to_string(voice->DisplayName()),
+            winrt::to_string(voice->Language())));
+        return true;
+    }
+    std::optional<SpeechAudio> synthesize(const std::wstring& text, double rate) override {
+        synth_.Options().SpeakingRate(rate);
+        const auto stream = synth_.SynthesizeTextToStreamAsync(winrt::hstring(text)).get();
+        const auto size = uint32_t(stream.Size());
+        winrt::Windows::Storage::Streams::DataReader reader(stream.GetInputStreamAt(0));
+        reader.LoadAsync(size).get();
+        std::vector<uint8_t> file(size);
+        reader.ReadBytes(file);
+        return parseWav(file);
+    }
+private:
+    SpeechSynthesizer synth_;
+};
 } // namespace
+
+std::unique_ptr<SpeechSynth> makeWindowsSynth() { return std::make_unique<WindowsSynth>(); }
 
 struct SpeechVoice::Impl {
     struct Line {
@@ -90,6 +107,7 @@ struct SpeechVoice::Impl {
         Clock::time_point queuedAt;
     };
 
+    SynthFactory factory;
     SpeakingChanged onSpeaking;
     std::mutex mutex;
     std::condition_variable wake;
@@ -108,9 +126,11 @@ struct SpeechVoice::Impl {
 
     void run() {
         try { winrt::init_apartment(winrt::apartment_type::multi_threaded); } catch (...) {}
-        SpeechSynthesizer synth{nullptr};
+        std::unique_ptr<SpeechSynth> synth;
+        try { synth = factory(); } catch (...) {}
+        if (!synth) log::warn("live-voice", "speech engine unavailable");
         std::wstring voiceLanguage;
-        bool haveVoice = false, missingLogged = false;
+        bool haveVoice = false, languageSet = false;
         for (;;) {
             Line line;
             std::wstring wantedLanguage;
@@ -127,42 +147,25 @@ struct SpeechVoice::Impl {
                 wantedLanguage = language;
                 lineGeneration = generation.load();
             }
-            if (Clock::now() - line.queuedAt > kMaxLineAge) continue;
+            if (!synth || Clock::now() - line.queuedAt > kMaxLineAge) continue;
             try {
-                if (!synth) synth = SpeechSynthesizer();
-                if (wantedLanguage != voiceLanguage) {
+                if (!languageSet || wantedLanguage != voiceLanguage) {
                     voiceLanguage = wantedLanguage;
-                    const auto voice = findVoice(voiceLanguage);
-                    haveVoice = voice.has_value();
-                    missingLogged = false;
-                    if (voice) {
-                        synth.Voice(*voice);
-                        log::info("live-voice", std::format("voice={} language={}", winrt::to_string(voice->DisplayName()),
-                            winrt::to_string(voice->Language())));
-                    }
+                    languageSet = true;
+                    haveVoice = synth->setLanguage(voiceLanguage);
+                    if (!haveVoice) log::warn("live-voice", std::format("no voice for {}", winrt::to_string(voiceLanguage)));
                 }
-                if (!haveVoice) {
-                    if (!missingLogged) log::warn("live-voice", std::format("no Windows voice for {}", narrow(voiceLanguage)));
-                    missingLogged = true;
-                    continue;
-                }
+                if (!haveVoice) continue;
                 // A little faster than normal, more when lines are waiting, so the
                 // voice keeps pace with dialogue instead of drifting behind it.
-                synth.Options().SpeakingRate(stillWaiting ? 1.3 : 1.1);
-                const auto stream = synth.SynthesizeTextToStreamAsync(winrt::hstring(line.text)).get();
-                const auto size = uint32_t(stream.Size());
-                winrt::Windows::Storage::Streams::DataReader reader(stream.GetInputStreamAt(0));
-                reader.LoadAsync(size).get();
-                std::vector<uint8_t> file(size);
-                reader.ReadBytes(file);
+                const auto audio = synth->synthesize(line.text, stillWaiting ? 1.3 : 1.1);
                 if (generation.load() != lineGeneration) continue;
-                const auto wav = parseWav(file);
-                if (!wav) { log::warn("live-voice", "speech synthesis returned no PCM"); continue; }
+                if (!audio) { log::warn("live-voice", "speech synthesis returned no audio"); continue; }
                 {
                     std::lock_guard lock(mutex);
                     setSpeaking(true);
                 }
-                play(*wav, lineGeneration);
+                play(*audio, lineGeneration);
             } catch (const winrt::hresult_error& e) {
                 log::warn("live-voice", std::format("speech synthesis failed hr=0x{:08x} {}", uint32_t(e.code()),
                     winrt::to_string(e.message())));
@@ -170,13 +173,14 @@ struct SpeechVoice::Impl {
                 log::warn("live-voice", "speech synthesis failed");
             }
         }
+        synth.reset();
         std::lock_guard lock(mutex);
         setSpeaking(false);
     }
 
     // One short-lived shared stream per line: the default output may change
     // between lines (headset plugged in), and opening it costs a few ms.
-    void play(const Wav& wav, uint64_t lineGeneration) {
+    void play(const SpeechAudio& audio, uint64_t lineGeneration) {
         ComPtr<IMMDeviceEnumerator> devices;
         ComPtr<IMMDevice> device;
         ComPtr<IAudioClient> client;
@@ -188,7 +192,7 @@ struct SpeechVoice::Impl {
             log::warn("live-voice", "no default audio output");
             return;
         }
-        const auto* format = reinterpret_cast<const WAVEFORMATEX*>(wav.format.data());
+        const auto* format = reinterpret_cast<const WAVEFORMATEX*>(audio.format.data());
         constexpr REFERENCE_TIME kBuffer = 2'000'000; // 200 ms
         const HRESULT init = client->Initialize(AUDCLNT_SHAREMODE_SHARED,
             AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY, kBuffer, 0, format, nullptr);
@@ -200,7 +204,7 @@ struct SpeechVoice::Impl {
         }
         const UINT32 frameBytes = format->nBlockAlign;
         if (!frameBytes) return;
-        const UINT32 totalFrames = UINT32(wav.pcm.size() / frameBytes);
+        const UINT32 totalFrames = UINT32(audio.pcm.size() / frameBytes);
         float appliedVolume = -1.0f;
         UINT32 channels = 0;
         if (SUCCEEDED(client->GetService(IID_PPV_ARGS(&streamVolume)))) streamVolume->GetChannelCount(&channels);
@@ -221,7 +225,7 @@ struct SpeechVoice::Impl {
             if (frames) {
                 BYTE* data = nullptr;
                 if (FAILED(render->GetBuffer(frames, &data))) break;
-                std::memcpy(data, wav.pcm.data() + size_t(written) * frameBytes, size_t(frames) * frameBytes);
+                std::memcpy(data, audio.pcm.data() + size_t(written) * frameBytes, size_t(frames) * frameBytes);
                 render->ReleaseBuffer(frames, 0);
                 written += frames;
             }
@@ -239,7 +243,8 @@ struct SpeechVoice::Impl {
     }
 };
 
-SpeechVoice::SpeechVoice(SpeakingChanged onSpeaking) : p_(std::make_unique<Impl>()) {
+SpeechVoice::SpeechVoice(SynthFactory factory, SpeakingChanged onSpeaking) : p_(std::make_unique<Impl>()) {
+    p_->factory = std::move(factory);
     p_->onSpeaking = std::move(onSpeaking);
 }
 
@@ -254,7 +259,7 @@ SpeechVoice::~SpeechVoice() {
     if (p_->worker.joinable()) p_->worker.join();
 }
 
-std::wstring SpeechVoice::voiceNameFor(const std::wstring& language) {
+std::wstring SpeechVoice::windowsVoiceNameFor(const std::wstring& language) {
     try {
         const auto voice = findVoice(language);
         return voice ? std::wstring(voice->DisplayName()) : std::wstring{};
