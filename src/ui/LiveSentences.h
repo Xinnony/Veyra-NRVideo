@@ -40,6 +40,8 @@ public:
                                          qint64 nowMs, const std::vector<SpeechMark>& marks = {});
     std::vector<LiveSentence> updateSnapshot(const QString& text, const QString& language, qint64 endUs, qint64 nowMs);
     std::vector<LiveSentence> flush(qint64 nowMs);
+    // Committed words of the sentence still in progress (no final punctuation yet).
+    const QString& pending() const { return pending_; }
     void reset(const QString& baseline = {});
 
 private:

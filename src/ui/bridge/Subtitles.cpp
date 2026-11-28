@@ -230,8 +230,8 @@ void QmlPlayerBridge::tickSubtitles() {
         emit subtitleTextChanged();
     }
     // Live text is never copied into subtitle diagnostics or the export graph.
-    const auto [original, translated, draft] = liveTranslation_->displayCaption();
-    if (original.isEmpty() && translated.isEmpty() && draft.isEmpty()) {
+    const auto [original, translated, draft, draftTranslated] = liveTranslation_->displayCaption();
+    if (original.isEmpty() && translated.isEmpty() && draft.isEmpty() && draftTranslated.isEmpty()) {
         updateSubtitleOverlay(i.subOverlay, draw, view);
         return;
     }
@@ -260,6 +260,9 @@ void QmlPlayerBridge::tickSubtitles() {
         appendLive(translated, 1.0, 0xff, std::clamp(liveLines > 0 ? liveLines : view.targetLines, 1, 3));
     if (alignment == 8 && draw.size() - beginLive == 2)
         std::swap(draw[beginLive], draw[beginLive + 1]);
+    // The sentence still being spoken: its preview translation, then (with the
+    // original shown) the recognizer's moving tail, both italic and dimmer.
+    if (!draftTranslated.isEmpty()) appendLive(draftTranslated, 0.9, 0xcc, 2, true);
     if (!draft.isEmpty()) appendLive(draft, 0.75, 0x99, 1, true);
     updateSubtitleOverlay(i.subOverlay, draw, view);
 }

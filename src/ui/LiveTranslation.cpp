@@ -185,6 +185,7 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
     if (targetLanguage_ == QLatin1String("zh")) targetLanguage_ = QStringLiteral("zh-CN");
     if (!languageCode(targetLanguage_)) targetLanguage_ = QStringLiteral("en");
     showOriginal_ = settings_.value(QStringLiteral("original"), true).toBool();
+    translateDraft_ = settings_.value(QStringLiteral("draft"), true).toBool();
     apiBase_ = settings_.value(QStringLiteral("apiBase")).toString();
     apiModel_ = settings_.value(QStringLiteral("apiModel")).toString();
 
@@ -245,6 +246,7 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
         auto completed = sentences_.appendFinal(text, language, endUs, clock_.elapsed(), marks);
         if (early) earlySentences_ += int(completed.size());
         addSentences(std::move(completed));
+        updateDraftTranslation();
     });
     connect(&asr_, &LiveAsr::draftText, this, [this](const QString& text) {
         if (recognitionSource_ != VeyraAudio) return;
@@ -252,6 +254,7 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
         if (text == speechDraft_) return;
         speechDraft_ = text;
         if (showOriginal_) emit captionChanged();
+        updateDraftTranslation();
     });
     connect(&reader_, &QProcess::readyReadStandardOutput, this, &LiveTranslation::readCaptions);
     connect(&reader_, &QProcess::errorOccurred, this, [this](QProcess::ProcessError error) {
@@ -373,8 +376,8 @@ LiveTranslation::DisplayCaption LiveTranslation::displayCaption() const {
     if (recognitionSource_ == VeyraAudio) {
         const auto draft = showOriginal_ ? speechDraft_ : QString{};
         if (speechShown_ && now < speechHideAt_)
-            return {speechShown_->work.sentence.text, speechShown_->translated, draft};
-        return {{}, {}, draft};
+            return {speechShown_->work.sentence.text, speechShown_->translated, draft, draftTranslated_};
+        return {{}, {}, draft, draftTranslated_};
     }
     for (auto row = rows_.rbegin(); row != rows_.rend(); ++row) {
         if (!row->translated.isEmpty() && row->until > now) return {row->original, row->translated};
@@ -572,6 +575,80 @@ void LiveTranslation::setShowOriginal(bool value) {
     settings_.setValue(QStringLiteral("original"), value);
     emit changed();
     emit captionChanged();
+}
+
+void LiveTranslation::setTranslateDraft(bool value) {
+    if (translateDraft_ == value) return;
+    translateDraft_ = value;
+    settings_.setValue(QStringLiteral("draft"), value);
+    if (!value) cancelDraft(true);
+    else updateDraftTranslation();
+    emit changed();
+}
+
+// The words heard so far that no final translation covers yet: the committed
+// part of the unfinished sentence plus the recognizer's still-moving tail.
+QString LiveTranslation::inProgressText() const {
+    return (sentences_.pending() + u' ' + speechDraft_).simplified();
+}
+
+void LiveTranslation::cancelDraft(bool clearShown) {
+    if (auto* reply = std::exchange(draftRequest_, nullptr)) {
+        reply->disconnect(this);
+        reply->abort();
+        reply->deleteLater();
+    }
+    draftSource_.clear();
+    if (!clearShown) return;
+    draftShownFor_.clear();
+    if (!draftTranslated_.isEmpty()) {
+        draftTranslated_.clear();
+        emit captionChanged();
+    }
+}
+
+void LiveTranslation::updateDraftTranslation() {
+    if (!translateDraft_ || recognitionSource_ != VeyraAudio || provider_ != Local) {
+        draftWanted_.clear();
+        return;
+    }
+    draftWanted_ = inProgressText();
+    // Drop the preview once the sentence it belongs to is finished or replaced:
+    // the final translation (or nothing) takes its place.
+    const auto lead = [](const QString& text) { return text.section(u' ', 0, 1).toLower(); };
+    if (draftWanted_.isEmpty() || (!draftTranslated_.isEmpty() && lead(draftWanted_) != lead(draftShownFor_)))
+        cancelDraft(true);
+}
+
+void LiveTranslation::requestDraft() {
+    const auto text = draftWanted_;
+    const auto source = sourceLanguage().isEmpty() ? QStringLiteral("en") : sourceLanguage();
+    QNetworkRequest request(completionEndpoint(QStringLiteral("http://127.0.0.1:%1/v1").arg(serverPort_)));
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
+    request.setTransferTimeout(3000);
+    request.setRawHeader("Authorization", "Bearer " + serverKey_);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    draftSource_ = text;
+    nextDraftAt_ = clock_.elapsed() + 400;
+    auto* reply = localNetwork_.post(request, chatRequest(text, {}, QString::fromLatin1(localAlias), source, targetLanguage_, true));
+    draftRequest_ = reply;
+    ++draftRequests_;
+    reply->setReadBufferSize(maxResponseBytes + 1);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, text] {
+        draftRequest_ = nullptr;
+        reply->deleteLater();
+        draftSource_.clear();
+        if (!enabled_ || !active_ || reply->error() != QNetworkReply::NoError || draftWanted_.isEmpty()) return;
+        const auto choices = QJsonDocument::fromJson(reply->readAll()).object().value(QStringLiteral("choices")).toArray();
+        if (choices.isEmpty()) return;
+        auto translation = choices.first().toObject().value(QStringLiteral("message")).toObject()
+            .value(QStringLiteral("content")).toString().simplified().left(300);
+        if (translation.isEmpty() || translation.compare(text, Qt::CaseInsensitive) == 0) return;
+        draftTranslated_ = std::move(translation);
+        draftShownFor_ = text;
+        ++draftsShown_;
+        emit captionChanged();
+    });
 }
 
 void LiveTranslation::setVoiceEnabled(bool value) {
@@ -878,6 +955,7 @@ void LiveTranslation::pruneSpeech(qint64 now) {
         draftHideAt_ = 0;
         speechDraft_.clear();
         if (showOriginal_) emit captionChanged();
+        updateDraftTranslation();
     }
     const auto expired = sink::recordingClockUs() - maxSpeechAgeUs;
     if (speechRequest_ && speechRequest_->sentence.endUs < expired) {
@@ -1011,6 +1089,8 @@ void LiveTranslation::resetCaption() {
     speechShown_.reset();
     speechSwapAt_ = speechBurstSwapAt_ = speechHideAt_ = draftHideAt_ = 0;
     speechDraft_.clear();
+    draftWanted_.clear();
+    cancelDraft(true);
     if (wasShown) emit captionChanged();
 }
 
@@ -1072,6 +1152,13 @@ void LiveTranslation::tick() {
     }
     if (recognitionSource_ == ScreenText) {
         tickScreen(now);
+        return;
+    }
+    if (queue_.isEmpty() && !request_ && !draftRequest_ && provider_ == Local && recognitionSource_ == VeyraAudio &&
+        translateDraft_ && now >= nextDraftAt_ && draftWanted_ != draftShownFor_ && draftWanted_.count(u' ') >= 2 &&
+        loopbackListenerIsOwned(serverPort_, DWORD(server_.processId()))) {
+        // Only while nothing final waits: the server runs one request at a time.
+        requestDraft();
         return;
     }
     if (queue_.isEmpty() || request_) return;
@@ -1157,6 +1244,8 @@ void LiveTranslation::stopLocal() {
 }
 
 void LiveTranslation::requestTranslation(Work work) {
+    // A final line always goes first; the preview of its sentence is outdated anyway.
+    if (draftRequest_) cancelDraft(false);
     const auto& text = work.sentence.text;
     const auto& source = work.sentence.language;
     const bool speech = recognitionSource_ == VeyraAudio;
@@ -1292,7 +1381,7 @@ void LiveTranslation::receiveTranslation(QNetworkReply* reply, const Work& work)
 
 void LiveTranslation::summarize(qint64 now) {
     lastSummaryAt_ = now;
-    if (!sentenceCount_ && !requestedCount_ && !displayedSentences_ && !stale_ && !failures_) return;
+    if (!sentenceCount_ && !requestedCount_ && !displayedSentences_ && !stale_ && !failures_ && !draftRequests_) return;
     if (!requestTimes_.empty()) {
         const auto total = std::accumulate(requestTimes_.begin(), requestTimes_.end(), qint64{0});
         averageTranslationMs_ = double(total) / double(requestTimes_.size());
@@ -1300,14 +1389,14 @@ void LiveTranslation::summarize(qint64 now) {
     std::ranges::sort(requestTimes_);
     std::ranges::sort(displayDelays_);
     std::ranges::sort(spokenDelays_);
-    log::info("live-translate", std::format("provider={} sentences={} requests={} cacheHits={} requestP50ms={} requestP95ms={} overlayP50ms={} overlayP95ms={} stale={} hidden={} failed={} shownSentences={} earlySentences={} wordTimeSamples={} wordEndP50ms={} wordEndP95ms={}",
+    log::info("live-translate", std::format("provider={} sentences={} requests={} cacheHits={} requestP50ms={} requestP95ms={} overlayP50ms={} overlayP95ms={} stale={} hidden={} failed={} shownSentences={} earlySentences={} wordTimeSamples={} wordEndP50ms={} wordEndP95ms={} draftRequests={} draftsShown={}",
         provider_, sentenceCount_, requestedCount_, cacheHits_, percentile(requestTimes_, 50), percentile(requestTimes_, 95),
         percentile(displayDelays_, 50), percentile(displayDelays_, 95), stale_, hidden_, failures_,
-        displayedSentences_, earlySentences_, spokenDelays_.size(), percentile(spokenDelays_, 50), percentile(spokenDelays_, 95)));
+        displayedSentences_, earlySentences_, spokenDelays_.size(), percentile(spokenDelays_, 50), percentile(spokenDelays_, 95), draftRequests_, draftsShown_));
     requestTimes_.clear();
     displayDelays_.clear();
     spokenDelays_.clear();
-    earlySentences_ = displayedSentences_ = 0;
+    earlySentences_ = displayedSentences_ = draftRequests_ = draftsShown_ = 0;
     sentenceCount_ = requestedCount_ = cacheHits_ = stale_ = hidden_ = failures_ = 0;
     emit changed();
 }

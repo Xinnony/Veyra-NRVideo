@@ -45,6 +45,8 @@ class LiveTranslation final : public QObject {
     Q_PROPERTY(QString sourceLanguage READ sourceLanguage WRITE setSourceLanguage NOTIFY changed)
     Q_PROPERTY(QString targetLanguage READ targetLanguage WRITE setTargetLanguage NOTIFY changed)
     Q_PROPERTY(bool showOriginal READ showOriginal WRITE setShowOriginal NOTIFY changed)
+    // Translates the sentence still being spoken (local model only) as a preview.
+    Q_PROPERTY(bool translateDraft READ translateDraft WRITE setTranslateDraft NOTIFY changed)
     // Reads each translated line aloud with a Windows voice of the target language.
     Q_PROPERTY(bool voiceEnabled READ voiceEnabled WRITE setVoiceEnabled NOTIFY changed)
     Q_PROPERTY(int voiceVolume READ voiceVolume WRITE setVoiceVolume NOTIFY changed)
@@ -103,6 +105,7 @@ public:
     QString sourceLanguage() const;
     QString targetLanguage() const { return targetLanguage_; }
     bool showOriginal() const { return showOriginal_; }
+    bool translateDraft() const { return translateDraft_; }
     bool voiceEnabled() const { return voiceEnabled_; }
     int voiceVolume() const { return voiceVolume_; }
     int voiceDuck() const { return voiceDuck_; }
@@ -121,6 +124,7 @@ public:
         QString original;
         QString translated;
         QString draft;
+        QString draftTranslated;
     };
     DisplayCaption displayCaption() const;
     QString caption() const { return displayCaption().original; }
@@ -143,6 +147,7 @@ public:
     void setSourceLanguage(QString value);
     void setTargetLanguage(QString value);
     void setShowOriginal(bool value);
+    void setTranslateDraft(bool value);
     void setVoiceEnabled(bool value);
     void setVoiceVolume(int value);
     void setVoiceDuck(int value);
@@ -213,6 +218,10 @@ private:
     void advanceSpeech(qint64 now);
     void startLocal();
     void stopLocal();
+    QString inProgressText() const;
+    void updateDraftTranslation();
+    void requestDraft();
+    void cancelDraft(bool clearShown);
     void speakLine(const QString& line);
     void setVoiceSpeaking(bool speaking);
     void updateVoiceName();
@@ -264,12 +273,18 @@ private:
     std::optional<SpeechRow> speechShown_;
     std::optional<Work> speechRequest_;
     QString speechDraft_;
+    // Preview of the sentence in progress: what was sent, what is wanted now, what is shown.
+    QNetworkReply* draftRequest_ = nullptr;
+    QString draftSource_, draftWanted_, draftTranslated_, draftShownFor_;
+    qint64 nextDraftAt_ = 0;
+    bool translateDraft_ = true;
     qint64 speechSwapAt_ = 0, speechBurstSwapAt_ = 0, speechHideAt_ = 0, draftHideAt_ = 0;
     QStringList context_;
     QCache<QString, QString> cache_{200};
     std::vector<qint64> requestTimes_, displayDelays_, spokenDelays_;
     int sentenceCount_ = 0, requestedCount_ = 0, cacheHits_ = 0, stale_ = 0, hidden_ = 0, failures_ = 0;
     int skippedSentences_ = 0;
+    int draftRequests_ = 0, draftsShown_ = 0;
     int earlySentences_ = 0, displayedSentences_ = 0;
     double averageTranslationMs_ = 0.0;
 };

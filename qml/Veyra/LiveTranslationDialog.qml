@@ -260,6 +260,17 @@ DialogLayer {
             }
         }
         VRow {
+            visible: root.supported && root.useVeyraAudio && root.provider === 0
+            objectName: "live-translation-draft"
+            label: qsTr("翻译正在说的句子")
+            hintBelow: true
+            hint: qsTr("句子说完前先以斜体显示预览译文，说完后替换为最终译文。语音只朗读最终译文。")
+            VSwitch {
+                checked: root.translation ? root.translation.translateDraft : true
+                onToggled: value => { root.translation.translateDraft = value }
+            }
+        }
+        VRow {
             visible: root.supported
             objectName: "live-translation-voice"
             label: qsTr("朗读译文")

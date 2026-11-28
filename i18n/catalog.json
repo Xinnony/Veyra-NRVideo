@@ -43408,6 +43408,32 @@
    "de": "Die Piper-Stimme konnte nicht starten (%1)",
    "pt-BR": "Não foi possível iniciar a voz do Piper (%1)",
    "ru": "Не удалось запустить голос Piper (%1)"
+  },
+  {
+   "zh": "翻译正在说的句子",
+   "src": "qml/LiveTranslationDialog.qml",
+   "zh-TW": "翻譯正在說的句子",
+   "en": "Translate the sentence being spoken",
+   "ja": "話している途中の文を翻訳",
+   "ko": "말하는 중인 문장 번역",
+   "es": "Traducir la frase en curso",
+   "fr": "Traduire la phrase en cours",
+   "de": "Laufenden Satz übersetzen",
+   "pt-BR": "Traduzir a frase em andamento",
+   "ru": "Переводить фразу по ходу речи"
+  },
+  {
+   "zh": "句子说完前先以斜体显示预览译文，说完后替换为最终译文。语音只朗读最终译文。",
+   "src": "qml/LiveTranslationDialog.qml",
+   "zh-TW": "句子說完前先以斜體顯示預覽譯文，說完後替換為最終譯文。語音只朗讀最終譯文。",
+   "en": "Shows an italic preview translation before the sentence ends, then replaces it with the final one. The voice reads only final translations.",
+   "ja": "文が終わる前に斜体で仮の訳を表示し、終わると最終訳に置き換えます。音声は最終訳のみを読み上げます。",
+   "ko": "문장이 끝나기 전에 기울임꼴로 미리 보기 번역을 표시하고, 끝나면 최종 번역으로 바꿉니다. 음성은 최종 번역만 읽습니다.",
+   "es": "Muestra en cursiva una traducción provisional antes de que termine la frase y luego la sustituye por la definitiva. La voz solo lee las traducciones definitivas.",
+   "fr": "Affiche une traduction provisoire en italique avant la fin de la phrase, puis la remplace par la version finale. La voix ne lit que les traductions finales.",
+   "de": "Zeigt vor dem Satzende eine kursive Vorschau-Übersetzung und ersetzt sie dann durch die endgültige. Die Stimme liest nur endgültige Übersetzungen.",
+   "pt-BR": "Mostra em itálico uma tradução provisória antes do fim da frase e depois a substitui pela final. A voz lê apenas as traduções finais.",
+   "ru": "Показывает курсивом предварительный перевод до конца фразы, затем заменяет его окончательным. Голос читает только окончательные переводы."
   }
  ]
 }
